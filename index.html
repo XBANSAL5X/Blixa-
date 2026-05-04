@@ -21,7 +21,10 @@
         .dark body { background-color: #131314; color: #e3e3e3; }
         #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: white; z-index: 9999; }
         .dark #loading { background: #131314; }
+        
+        /* Gradient Text Logo */
         .blixa-logo-text { background: linear-gradient(to bottom, #ff0000, #ffea00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        
         .full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .message-fade { animation: fadeIn 0.4s ease forwards; }
@@ -50,7 +53,7 @@
     <div id="loading">
         <div class="flex flex-col items-center gap-4">
             <img src="blixa.png" class="w-16 h-16 animate-pulse" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
-            <p class="font-bold text-pink-500 text-xl tracking-widest uppercase">Blixa</p>
+            <p class="font-bold text-pink-500 text-xl tracking-widest">BLIXA</p>
         </div>
     </div>
 
@@ -74,7 +77,7 @@
         <button onclick="newChat()" class="text-pink-500"><i data-lucide="plus" class="w-8 h-8"></i></button>
     </header>
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-gray-50 dark:bg-[#1e1e20] border-r border-gray-200 dark:border-zinc-800 transform -translate-x-full md:translate-x-0 md:relative flex flex-col h-full transition-transform">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-gray-50 dark:bg-[#1e1e20] border-r border-gray-200 dark:border-zinc-800 transform -translate-x-full md:translate-x-0 md:relative flex flex-col h-full transition-transform duration-300">
         <div class="p-5 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <img src="blixa.png" class="w-10 h-10 object-contain" onerror="this.style.display='none'">
@@ -82,8 +85,8 @@
             </div>
             <button onclick="toggleSidebar()" class="md:hidden"><i data-lucide="x" class="w-8 h-8"></i></button>
         </div>
-        <button onclick="newChat()" class="mx-4 my-2 flex items-center gap-3 px-4 py-3 bg-gray-200/50 dark:bg-zinc-800/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition text-sm">
-            <i data-lucide="plus" class="w-4 h-4 text-pink-500"></i> New Chat
+        <button onclick="newChat()" class="mx-4 my-2 flex items-center gap-3 px-4 py-3 bg-gray-200/50 dark:bg-zinc-800/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition text-sm font-medium">
+            <i data-lucide="plus" class="w-4 h-4 text-pink-500"></i> New Conversation
         </button>
         <div id="chat-list" class="flex-1 overflow-y-auto px-2 mt-4 space-y-1 no-scrollbar"></div>
         <div class="p-4 border-t border-gray-200 dark:border-zinc-800 space-y-2 text-sm">
@@ -107,11 +110,11 @@
 
         <div class="fixed bottom-0 left-0 right-0 md:left-72 bg-gradient-to-t from-white dark:from-[#131314] pt-10 pb-6 px-4">
             <div class="max-w-3xl mx-auto relative">
-                <div class="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-3xl p-2 flex flex-col">
-                    <textarea id="user-input" rows="1" placeholder="Type here..." class="w-full bg-transparent p-3 outline-none resize-none text-gray-800 dark:text-white"></textarea>
+                <div class="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-3xl p-2 flex flex-col focus-within:ring-2 focus-within:ring-pink-300 dark:focus-within:ring-pink-800 transition-all">
+                    <textarea id="user-input" rows="1" placeholder="Type here..." class="w-full bg-transparent p-3 outline-none resize-none text-gray-800 dark:text-white leading-relaxed"></textarea>
                     <div class="flex justify-between items-center px-2 pb-1">
-                        <button onclick="startFullVoice()" class="p-2 text-zinc-500 hover:text-pink-500 transition"><i data-lucide="mic" class="w-6 h-6"></i></button>
-                        <button id="send-btn" onclick="handleSend()" class="p-2 bg-pink-500 hover:bg-pink-600 disabled:opacity-30 text-white rounded-full shadow-md" disabled><i data-lucide="arrow-up" class="w-6 h-6"></i></button>
+                        <button onclick="startFullVoice()" class="p-2 text-zinc-500 hover:text-pink-500 transition-all active:scale-95"><i data-lucide="mic" class="w-6 h-6"></i></button>
+                        <button id="send-btn" onclick="handleSend()" class="p-2 bg-pink-500 hover:bg-pink-600 disabled:opacity-30 text-white rounded-full shadow-md transition-all active:scale-95" disabled><i data-lucide="arrow-up" class="w-6 h-6"></i></button>
                     </div>
                 </div>
             </div>
@@ -124,18 +127,18 @@
             <div class="space-y-5">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Endpoint URL</label>
-                    <input type="text" id="api-url-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                    <input type="text" id="api-url-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">API Key</label>
-                    <input type="password" id="api-key-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">API Secret Key</label>
+                    <input type="password" id="api-key-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Model</label>
-                    <input type="text" id="model-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Model Identifier</label>
+                    <input type="text" id="model-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500">
                 </div>
                 <div class="pt-2">
-                    <button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600">Save</button>
+                    <button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600 active:scale-95 transition-all">Save Settings</button>
                     <button onclick="closeModal('settings-modal')" class="w-full py-2 mt-2 text-zinc-500 text-sm">Close</button>
                 </div>
             </div>
@@ -143,7 +146,8 @@
     </div>
 
     <script>
-        const persona = "Your name is Blixa, a feminine AI assistant. Greet ONLY ONCE at the start. Use feminine grammar. Don't repeat yourself.";
+        // System Prompt: Universal Persona (Feminine + English Start)
+        const persona = "Your name is Blixa, a female AI assistant. Greet ONLY ONCE at the very start of a new chat in English. Always use feminine grammar in any language you speak. Only switch languages if requested. Keep voice responses short and strictly DO NOT use or describe emojis verbslly in voice mode.";
 
         let state = {
             apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
@@ -153,7 +157,7 @@
             currentChatId: null,
             isDarkMode: localStorage.getItem('blixa_theme') === 'dark',
             isVoiceActive: false,
-            hasGreeted: false
+            hasGreeted: false 
         };
 
         const elements = {
@@ -168,6 +172,7 @@
             vStatus: document.getElementById('v-status')
         };
 
+        // Initialize App
         window.onload = () => {
             lucide.createIcons();
             if (state.isDarkMode) document.documentElement.classList.add('dark');
@@ -175,42 +180,40 @@
             document.getElementById('api-key-input').value = state.apiKey;
             document.getElementById('model-input').value = state.model;
             renderChatList();
-            setTimeout(() => { elements.loading.style.display = 'none'; }, 800);
+            setTimeout(() => { elements.loading.style.display = 'none'; }, 800); // Safe timeout
         };
 
-        async function callBlixa(messages) {
-            if (!state.apiKey) {
-                openModal('settings-modal');
-                return "Please enter your API Key in settings.";
-            }
+        // Text to Speech (Female voice)
+        function speakText(text, btnId) {
+            window.speechSynthesis.cancel();
+            // Filter emojis for speech
+            const cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+            const utt = new SpeechSynthesisUtterance(cleanText);
+            const voices = window.speechSynthesis.getVoices();
+            const fVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi') || v.name.includes('Zira'));
+            if(fVoice) utt.voice = fVoice;
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('text-pink-500', 'scale-110');
+            utt.onend = () => { if(btn) btn.classList.remove('text-pink-500', 'scale-110'); };
+            window.speechSynthesis.speak(utt);
+        }
+
+        async function callBlixaAPI(messages) {
             try {
-                const response = await fetch(`${state.apiBase}/chat/completions`, {
+                const res = await fetch(`${state.apiBase}/chat/completions`, {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${state.apiKey}`,
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": window.location.href,
-                        "X-Title": "Blixa AI"
-                    },
+                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ "model": state.model, "messages": messages })
                 });
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    return data.choices[0].message.content;
-                } else {
-                    return "API Error: " + (data.error ? data.error.message : "Response empty");
-                }
-            } catch (e) {
-                return "Network Error: API connection failed.";
-            }
+                const data = await res.json();
+                return data.choices[0].message.content;
+            } catch (e) { return "I encountered an error. Please check your API settings or network."; }
         }
 
         async function handleSend() {
             const val = elements.userInput.value.trim();
-            if (!val) return;
+            if (!val || !state.apiKey) return;
             
-            if (!state.apiKey) { openModal('settings-modal'); return; }
-
             if (!state.currentChatId) {
                 state.currentChatId = Date.now();
                 state.chats.push({ id: state.currentChatId, title: val.substring(0, 25), messages: [{role: "system", content: persona}] });
@@ -221,24 +224,26 @@
             chat.messages.push({ role: 'user', content: val });
             appendUI('user', val);
             elements.userInput.value = '';
+            elements.userInput.style.height = 'auto'; // Reset height
             
             const aiId = appendUI('assistant', 'Thinking...');
             
-            // Repetition prevention
-            let context = [...chat.messages];
-            if(state.hasGreeted && val.toLowerCase().includes("hello")) {
-                context[0] = {role: "system", content: "Feminine AI. User said hello again, do not introduce yourself, just reply normally."};
+            // Context handling for hello repeat
+            let contextMessages = [...chat.messages];
+            if(state.hasGreeted && val.toLowerCase().includes('hello')) {
+                contextMessages[0] = {role: "system", content: persona + " User greeted again. DO NOT repeat introduction. Respond briefly."};
             }
 
-            const reply = await callBlixa(context);
-            state.hasGreeted = true;
-
+            const reply = await callBlixaAPI(contextMessages);
+            state.hasGreeted = true; // Set greeted flag
+            
             const msgDiv = document.getElementById(aiId);
             msgDiv.innerHTML = marked.parse(reply);
             
+            // Speaker button logic
             const spkBtn = document.createElement('button');
             spkBtn.id = 'spk-' + aiId;
-            spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all";
+            spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all active:scale-90";
             spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
             spkBtn.onclick = () => speakText(reply, spkBtn.id);
             msgDiv.parentElement.appendChild(spkBtn);
@@ -252,27 +257,23 @@
         function appendUI(role, text) {
             const id = 'm-' + Math.random().toString(36).substr(2, 9);
             const isUser = role === 'user';
-            const html = `<div class="flex ${isUser ? 'justify-end' : 'justify-start'} message-fade"><div class="px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800'}"><div id="${id}" class="prose dark:prose-invert prose-sm">${marked.parse(text)}</div></div></div>`;
+            const html = `
+                <div class="flex ${isUser ? 'justify-end' : 'justify-start'} message-fade">
+                    <div class="px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white shadow-md' : 'bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200'}">
+                        <div id="${id}" class="prose dark:prose-invert prose-sm leading-relaxed">${marked.parse(text)}</div>
+                    </div>
+                </div>`;
             elements.chatContainer.insertAdjacentHTML('beforeend', html);
             elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
             return id;
         }
 
-        function speakText(text, btnId) {
-            window.speechSynthesis.cancel();
-            const cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
-            const utt = new SpeechSynthesisUtterance(cleanText);
-            const voices = window.speechSynthesis.getVoices();
-            const fVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi'));
-            if(fVoice) utt.voice = fVoice;
-            const btn = document.getElementById(btnId);
-            if(btn) btn.classList.add('text-pink-500');
-            utt.onend = () => { if(btn) btn.classList.remove('text-pink-500'); };
-            window.speechSynthesis.speak(utt);
-        }
-
         function renderChatList() {
-            elements.chatList.innerHTML = state.chats.slice().reverse().map(c => `<div onclick="loadChat(${c.id})" class="p-3 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 truncate text-sm mb-1 ${state.currentChatId === c.id ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : ''}">${c.title}</div>`).join('');
+            elements.chatList.innerHTML = state.chats.slice().reverse().map(c => `
+                <div onclick="loadChat(${c.id})" class="p-3 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 truncate text-sm mb-1 ${state.currentChatId === c.id ? 'bg-gray-200 dark:bg-zinc-800 font-medium' : 'text-zinc-700 dark:text-zinc-300'}">
+                    ${c.title}
+                </div>
+            `).join('');
         }
 
         function loadChat(id) {
@@ -286,7 +287,7 @@
                     const msgDiv = document.getElementById(aiId);
                     const spkBtn = document.createElement('button');
                     spkBtn.id = 'spk-' + aiId;
-                    spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500";
+                    spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all";
                     spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
                     spkBtn.onclick = () => speakText(m.content, spkBtn.id);
                     msgDiv.parentElement.appendChild(spkBtn);
@@ -298,13 +299,14 @@
 
         function newChat() {
             state.currentChatId = null;
-            state.hasGreeted = false;
+            state.hasGreeted = false; // Reset greeting for new session
             elements.chatContainer.innerHTML = '';
             elements.chatContainer.appendChild(elements.welcomeView);
             elements.welcomeView.classList.remove('hidden');
             renderChatList();
         }
 
+        // Settings Handling
         function saveSettings() {
             state.apiBase = document.getElementById('api-url-input').value.trim();
             state.apiKey = document.getElementById('api-key-input').value.trim();
@@ -313,9 +315,9 @@
             localStorage.setItem('blixa_key', state.apiKey);
             localStorage.setItem('blixa_model', state.model);
             closeModal('settings-modal');
-            location.reload();
         }
 
+        // UI Helpers
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
         function toggleDarkMode() { 
             state.isDarkMode = !state.isDarkMode; 
@@ -325,34 +327,57 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+        // Speech Recognition with Bracket Transcription
         const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
         if(SpeechRec) {
             recognition = new SpeechRec();
             recognition.continuous = true;
             recognition.interimResults = true;
+            
             recognition.onresult = (e) => {
-                let interim = '', final = '';
+                let interimTranscript = '', finalTranscript = '';
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
-                    if (e.results[i].isFinal) final += e.results[i][0].transcript;
-                    else interim += e.results[i][0].transcript;
+                    if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+                    else interimTranscript += e.results[i][0].transcript;
                 }
-                let liveOutput = final || interim;
+                
+                let liveOutput = finalTranscript || interimTranscript;
                 if(liveOutput) {
                     elements.vTranscript.innerText = `(${liveOutput})`;
                     elements.vTranscript.className = "text-white text-xl italic font-medium";
+                } else {
+                    elements.vTranscript.innerText = "Waiting for speech...";
+                    elements.vTranscript.className = "text-zinc-400 text-xl italic";
                 }
-                if (final) {
+
+                if (finalTranscript) {
                     recognition.stop();
                     elements.vStatus.innerText = "Thinking...";
-                    callBlixa([{role:"system", content:persona}, {role:"user", content:final}]).then(r => {
-                        state.hasGreeted = true;
+                    
+                    // Context handling for voice hello repeat
+                    let contextMsg = persona;
+                    if(state.hasGreeted && finalTranscript.toLowerCase().includes('hello')) {
+                        contextMsg += " User said hello again via voice. DO NOT repeat introduction.";
+                    }
+
+                    callBlixaAPI([{role:"system", content:contextMsg}, {role:"user", content:finalTranscript}]).then(r => {
+                        state.hasGreeted = true; // Mark greeted
                         elements.vStatus.innerText = "Speaking...";
-                        const utt = new SpeechSynthesisUtterance(r.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, ''));
+                        // Speech synthesis logic
+                        const cleanText = r.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+                        const utt = new SpeechSynthesisUtterance(cleanText);
                         const voices = window.speechSynthesis.getVoices();
-                        const fv = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi'));
-                        if(fv) utt.voice = fv;
-                        utt.onend = () => { if(state.isVoiceActive) { elements.vStatus.innerText = "Listening..."; recognition.start(); } };
+                        const fVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi'));
+                        if(fVoice) utt.voice = fVoice;
+                        
+                        utt.onend = () => {
+                            if(state.isVoiceActive) {
+                                elements.vStatus.innerText = "Listening...";
+                                elements.vTranscript.innerText = "Waiting for speech...";
+                                recognition.start();
+                            }
+                        };
                         window.speechSynthesis.speak(utt);
                     });
                 }
@@ -362,17 +387,23 @@
         function startFullVoice() {
             if(!state.apiKey) { openModal('settings-modal'); return; }
             elements.voiceOverlay.style.display = 'flex';
+            elements.vTranscript.innerText = "Waiting for speech...";
             state.isVoiceActive = true;
             if(recognition) recognition.start();
         }
+
         function stopFullVoice() {
             elements.voiceOverlay.style.display = 'none';
             state.isVoiceActive = false;
             window.speechSynthesis.cancel();
             if(recognition) recognition.stop();
         }
+
+        // Input height auto-adjust
         elements.userInput.addEventListener('input', function() {
             elements.sendBtn.disabled = !this.value.trim();
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
         });
     </script>
 </body>
