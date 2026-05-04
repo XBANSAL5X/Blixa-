@@ -25,15 +25,30 @@
         .full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Draggable & Wrap Styles */
-        .message-bubble { word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; cursor: grab; position: relative; touch-action: none; }
-        .message-bubble:active { cursor: grabbing; }
+        /* PROFESSIONAL OUTPUT STYLING */
+        .prose-container {
+            max-height: 75vh;
+            overflow: auto;
+            scrollbar-width: none;
+        }
+        .prose { max-width: 100% !important; }
+        .prose h1, .prose h2, .prose h3 { font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; color: inherit; }
+        .prose p { margin-bottom: 1em; line-height: 1.6; }
+        .prose ul, .prose ol { margin-bottom: 1em; padding-left: 1.5em; }
+        .prose li { margin-bottom: 0.3em; }
         
-        /* Systematic Code Blocks like ChatGPT */
-        pre { background: #1e1e1e !important; color: #d4d4d4 !important; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 10px 0; border: 1px solid #333; position: relative; }
-        code { font-family: 'Consolas', monospace; font-size: 0.85rem; }
-        pre::before { content: 'Code'; position: absolute; top: 0; right: 0; background: #333; padding: 2px 8px; font-size: 10px; color: #aaa; border-bottom-left-radius: 4px; }
-
+        /* Systematic Tables */
+        .prose table { width: 100%; border-collapse: collapse; margin-bottom: 1.5em; font-size: 0.9em; }
+        .prose th { background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); padding: 8px; text-align: left; }
+        .dark .prose th { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .prose td { border: 1px solid rgba(0,0,0,0.1); padding: 8px; }
+        .dark .prose td { border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Professional Code Blocks */
+        .prose pre { background: #1e1e1e !important; color: #d4d4d4; padding: 1em; border-radius: 12px; overflow-x: auto; margin-bottom: 1.5em; border: 1px solid rgba(255,255,255,0.1); }
+        .prose code { font-family: 'Courier New', Courier, monospace; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
+        .dark .prose code { background: rgba(255,255,255,0.1); }
+        
         .message-fade { animation: fadeIn 0.4s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -47,8 +62,17 @@
             display: none; flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center;
         }
-        .voice-pulse { width: 140px; height: 140px; background: #f43f5e; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); animation: pulse-ring 2s infinite; }
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); } 70% { box-shadow: 0 0 0 35px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
+        .voice-pulse {
+            width: 140px; height: 140px; background: #f43f5e; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+            70% { box-shadow: 0 0 0 35px rgba(244, 63, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+        }
     </style>
 </head>
 <body class="flex flex-col md:flex-row min-h-screen">
@@ -63,26 +87,42 @@
     <div id="voice-overlay">
         <div class="voice-pulse mb-10"><i data-lucide="mic" class="w-12 h-12 text-white"></i></div>
         <h2 id="v-status" class="text-3xl font-bold mb-4">Listening...</h2>
-        <div class="h-24 flex items-center justify-center px-8 text-center"><p id="v-transcript" class="text-zinc-400 text-xl italic max-w-lg leading-relaxed">Waiting for speech...</p></div>
-        <button onclick="stopFullVoice()" class="mt-16 p-5 bg-red-600 rounded-full hover:bg-red-700 active:scale-90 transition"><i data-lucide="phone-off" class="w-8 h-8"></i></button>
+        <div class="h-24 flex items-center justify-center px-8 text-center">
+            <p id="v-transcript" class="text-zinc-400 text-xl italic max-w-lg leading-relaxed">Waiting for speech...</p>
+        </div>
+        <button onclick="stopFullVoice()" class="mt-16 p-5 bg-red-600 rounded-full hover:bg-red-700 active:scale-90 transition">
+            <i data-lucide="phone-off" class="w-8 h-8"></i>
+        </button>
     </div>
 
     <header class="md:hidden flex items-center justify-between p-5 border-b border-gray-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#131314] z-40">
         <button onclick="toggleSidebar()"><i data-lucide="menu" class="w-8 h-8"></i></button>
-        <div class="flex items-center gap-2"><img src="blixa.png" class="w-8 h-8 object-contain" onerror="this.style.display='none'"><span class="blixa-logo-text text-2xl">Blixa</span></div>
+        <div class="flex items-center gap-2">
+            <img src="blixa.png" class="w-8 h-8 object-contain" onerror="this.style.display='none'">
+            <span class="blixa-logo-text text-2xl">Blixa</span>
+        </div>
         <button onclick="newChat()" class="text-pink-500"><i data-lucide="plus" class="w-8 h-8"></i></button>
     </header>
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-gray-50 dark:bg-[#1e1e20] border-r border-gray-200 dark:border-zinc-800 transform -translate-x-full md:translate-x-0 md:relative flex flex-col h-full transition-transform">
         <div class="p-5 flex items-center justify-between">
-            <div class="flex items-center gap-3"><img src="blixa.png" class="w-10 h-10 object-contain" onerror="this.style.display='none'"><span class="blixa-logo-text text-3xl">Blixa</span></div>
+            <div class="flex items-center gap-3">
+                <img src="blixa.png" class="w-10 h-10 object-contain" onerror="this.style.display='none'">
+                <span class="blixa-logo-text text-3xl">Blixa</span>
+            </div>
             <button onclick="toggleSidebar()" class="md:hidden"><i data-lucide="x" class="w-8 h-8"></i></button>
         </div>
-        <button onclick="newChat()" class="mx-4 my-2 flex items-center gap-3 px-4 py-3 bg-gray-200/50 dark:bg-zinc-800/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition text-sm"><i data-lucide="plus" class="w-4 h-4 text-pink-500"></i> New Chat</button>
+        <button onclick="newChat()" class="mx-4 my-2 flex items-center gap-3 px-4 py-3 bg-gray-200/50 dark:bg-zinc-800/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition text-sm">
+            <i data-lucide="plus" class="w-4 h-4 text-pink-500"></i> New Chat
+        </button>
         <div id="chat-list" class="flex-1 overflow-y-auto px-2 mt-4 space-y-1 no-scrollbar"></div>
         <div class="p-4 border-t border-gray-200 dark:border-zinc-800 space-y-2 text-sm">
-            <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg"><i data-lucide="moon"></i> Appearance</button>
-            <button onclick="openModal('settings-modal')" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg"><i data-lucide="settings"></i> Configuration</button>
+            <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg">
+                <i data-lucide="moon"></i> Appearance
+            </button>
+            <button onclick="openModal('settings-modal')" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg">
+                <i data-lucide="settings"></i> Configuration
+            </button>
         </div>
     </aside>
 
@@ -112,16 +152,28 @@
         <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
             <h2 class="text-xl font-bold mb-6 dark:text-white">API Configuration</h2>
             <div class="space-y-5">
-                <div><label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Endpoint URL</label><input type="text" id="api-url-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none"></div>
-                <div><label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">API Key</label><input type="password" id="api-key-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none"></div>
-                <div><label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Model</label><input type="text" id="model-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none"></div>
-                <div class="pt-2"><button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600">Save</button><button onclick="closeModal('settings-modal')" class="w-full py-2 mt-2 text-zinc-500 text-sm">Close</button></div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Endpoint URL</label>
+                    <input type="text" id="api-url-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">API Key</label>
+                    <input type="password" id="api-key-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Model</label>
+                    <input type="text" id="model-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                </div>
+                <div class="pt-2">
+                    <button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600">Save</button>
+                    <button onclick="closeModal('settings-modal')" class="w-full py-2 mt-2 text-zinc-500 text-sm">Close</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const persona = "Your name is Blixa, a feminine highly advanced AI assistant. FAST REPLY MODE. RULE: Only if the user says 'hi' or 'hello', greet with 'Hello, I am Blixa. How can I assist you today?'. Otherwise, answer immediately. Format code blocks systematically.";
+        const persona = "Your name is Blixa, a feminine highly advanced AI assistant. FAST REPLY MODE. SYSTEMATIC RESPONSE PROTOCOL: You must provide exceptionally professional, structured, and systematic answers. Use bold headings, clearly defined tables, and concise bullet points. Maintain a clean, academic yet helpful tone. Use feminine grammar.";
 
         let state = {
             apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
@@ -152,7 +204,10 @@
             document.getElementById('api-key-input').value = state.apiKey;
             document.getElementById('model-input').value = state.model;
             renderChatList();
-            setTimeout(() => { elements.loading.style.opacity = '0'; setTimeout(() => elements.loading.style.display = 'none', 400); }, 800);
+            setTimeout(() => { 
+                elements.loading.style.opacity = '0';
+                setTimeout(() => elements.loading.style.display = 'none', 400);
+            }, 800);
         };
 
         async function typeWriter(elementId, text) {
@@ -164,7 +219,7 @@
                 currentText += word + ' ';
                 el.innerHTML = marked.parse(currentText);
                 elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-                await new Promise(r => setTimeout(r, 10));
+                await new Promise(r => setTimeout(r, 12));
             }
         }
 
@@ -173,8 +228,11 @@
             try {
                 const response = await fetch(`${state.apiBase}/chat/completions`, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ "model": state.model, "messages": messages, "temperature": 0.6 })
+                    headers: {
+                        "Authorization": `Bearer ${state.apiKey}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ "model": state.model, "messages": messages, "temperature": 0.5 })
                 });
                 const data = await response.json();
                 return data.choices?.[0]?.message?.content || "Error logic.";
@@ -198,39 +256,40 @@
             elements.userInput.style.height = 'auto';
             
             const aiId = appendUI('assistant', '<div class="flex gap-1 py-1"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>');
+            
             const reply = await callBlixa(chat.messages);
             await typeWriter(aiId, reply);
             
             const msgDiv = document.getElementById(aiId);
-            addAssistantActions(msgDiv, aiId, reply);
+            const actionContainer = document.createElement('div');
+            actionContainer.className = "flex items-center gap-4 mt-3 pt-2 border-t border-black/5 dark:border-white/5";
+            actionContainer.innerHTML = `
+                <button onclick="speakText('${reply.replace(/'/g, "\\'")}', 'spk-${aiId}')" id="spk-${aiId}" class="text-zinc-400 hover:text-pink-500 transition-all active:scale-90"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                <button onclick="copyToClipboard('${reply.replace(/'/g, "\\'")}', 'cp-${aiId}')" id="cp-${aiId}" class="text-zinc-400 hover:text-pink-500 transition-all active:scale-90"><i data-lucide="copy" class="w-4 h-4"></i></button>
+            `;
+            msgDiv.parentElement.appendChild(actionContainer);
+            lucide.createIcons();
+
             chat.messages.push({ role: 'assistant', content: reply });
             localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
             renderChatList();
         }
 
-        function addAssistantActions(container, id, text) {
-            const actions = document.createElement('div');
-            actions.className = "flex items-center gap-4 mt-2";
-            actions.innerHTML = `
-                <button onclick="speakText('${text.replace(/'/g, "\\'")}', 'spk-${id}')" id="spk-${id}" class="text-zinc-400 hover:text-pink-500"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
-                <button onclick="copyToClipboard('${text.replace(/'/g, "\\'")}', 'cp-${id}')" id="cp-${id}" class="text-zinc-400 hover:text-pink-500"><i data-lucide="copy" class="w-4 h-4"></i></button>
-            `;
-            container.parentElement.appendChild(actions);
-            lucide.createIcons();
-            makeDraggable(container.parentElement);
-        }
-
-        function appendUI(role, text, msgIndex = null) {
+        function appendUI(role, text, index = -1) {
             const id = 'm-' + Math.random().toString(36).substr(2, 9);
             const isUser = role === 'user';
-            const avatar = isUser ? '<div class="w-8 h-8 rounded-full bg-zinc-300 dark:bg-zinc-700 flex items-center justify-center text-[10px] font-bold mb-1 ml-auto">YOU</div>' : '<img src="blixa.png" class="w-8 h-8 rounded-full mb-1" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/4712/4712139.png\'">';
-            const editBtn = isUser ? `<button onclick="editMessage(${msgIndex}, '${text.replace(/'/g, "\\'")}')" class="mt-1 text-zinc-400 hover:text-pink-500 self-end"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>` : '';
+            
+            const avatar = isUser 
+                ? '<div class="w-8 h-8 rounded-full bg-zinc-300 dark:bg-zinc-700 flex items-center justify-center text-[10px] font-bold mb-1 ml-auto">YOU</div>'
+                : '<img src="blixa.png" class="w-8 h-8 rounded-full mb-1" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/4712/4712139.png\'">';
+
+            const editBtn = (isUser && index !== -1) ? `<button onclick="editAndRefresh(${index})" class="mt-1 text-zinc-400 hover:text-pink-500 self-end transition-colors"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>` : '';
 
             const html = `
                 <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} message-fade w-full">
                     ${avatar}
-                    <div class="px-4 py-3 rounded-2xl message-bubble ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800'} max-w-[90%] md:max-w-[80%] shadow-sm">
-                        <div id="${id}" class="prose dark:prose-invert prose-sm leading-relaxed overflow-hidden">${isUser ? marked.parse(text) : text}</div>
+                    <div class="px-5 py-4 rounded-3xl message-bubble ${isUser ? 'bg-pink-500 text-white shadow-sm' : 'bg-gray-100 dark:bg-zinc-800 shadow-sm'} max-w-[96%] md:max-w-[88%]">
+                        <div id="${id}" class="prose dark:prose-invert prose-sm prose-container no-scrollbar">${isUser ? marked.parse(text) : text}</div>
                     </div>
                     ${editBtn}
                 </div>`;
@@ -241,34 +300,53 @@
             return id;
         }
 
-        function editMessage(index, oldText) {
+        function editAndRefresh(index) {
             const chat = state.chats.find(c => c.id === state.currentChatId);
-            chat.messages = chat.messages.slice(0, index); 
-            elements.userInput.value = oldText;
+            const originalText = chat.messages[index].content;
+            elements.userInput.value = originalText;
             elements.userInput.focus();
-            loadChat(state.currentChatId); 
+            elements.userInput.style.height = 'auto';
+            elements.userInput.style.height = (elements.userInput.scrollHeight) + 'px';
+            elements.sendBtn.disabled = false;
+            chat.messages = chat.messages.slice(0, index);
+            elements.chatContainer.innerHTML = '';
+            chat.messages.filter(m => m.role !== 'system').forEach((m, i) => {
+                const msgIdx = chat.messages.indexOf(m);
+                loadMessageToUI(m, msgIdx);
+            });
+            if(chat.messages.length === 1) elements.welcomeView.classList.remove('hidden');
         }
 
-        function makeDraggable(el) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            el.onmousedown = dragMouseDown;
-            function dragMouseDown(e) { e = e || window.event; e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; }
-            function elementDrag(e) { e = e || window.event; e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; el.style.top = (el.offsetTop - pos2) + "px"; el.style.left = (el.offsetLeft - pos1) + "px"; el.style.position = "relative"; }
-            function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
+        function loadMessageToUI(m, idx) {
+            const aiId = appendUI(m.role, marked.parse(m.content), idx);
+            if(m.role === 'assistant') {
+                const msgDiv = document.getElementById(aiId);
+                const actions = document.createElement('div');
+                actions.className = "flex items-center gap-4 mt-3 pt-2 border-t border-black/5 dark:border-white/5";
+                actions.innerHTML = `
+                    <button onclick="speakText('${m.content.replace(/'/g, "\\'")}', 'spk-${aiId}')" id="spk-${aiId}" class="text-zinc-400 hover:text-pink-500"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                    <button onclick="copyToClipboard('${m.content.replace(/'/g, "\\'")}', 'cp-${aiId}')" id="cp-${aiId}" class="text-zinc-400 hover:text-pink-500"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                `;
+                msgDiv.parentElement.appendChild(actions);
+            }
         }
 
         function copyToClipboard(text, btnId) {
             navigator.clipboard.writeText(text);
             const btn = document.getElementById(btnId);
-            btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-500"></i>'; lucide.createIcons();
-            setTimeout(() => { btn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>'; lucide.createIcons(); }, 2000);
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-500"></i>';
+            lucide.createIcons();
+            setTimeout(() => { btn.innerHTML = originalIcon; lucide.createIcons(); }, 2000);
         }
 
         function speakText(text, btnId) {
             window.speechSynthesis.cancel();
             const utt = new SpeechSynthesisUtterance(text.replace(/[\u{1F600}-\u{1F64F}]/gu, ''));
             const voices = window.speechSynthesis.getVoices();
-            utt.voice = voices.find(v => v.lang.includes('hi') || v.lang.includes('en'));
+            const fVoice = voices.find(v => (v.name.includes('Google') || v.name.includes('Female')) && (v.lang.includes('hi') || v.lang.includes('en')));
+            if(fVoice) utt.voice = fVoice;
+            utt.pitch = 1.1; 
             const btn = document.getElementById(btnId);
             if(btn) btn.classList.add('text-pink-500');
             utt.onend = () => { if(btn) btn.classList.remove('text-pink-500'); };
@@ -279,53 +357,102 @@
             elements.chatList.innerHTML = state.chats.slice().reverse().map(c => `
                 <div class="group flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 mb-1 ${state.currentChatId === c.id ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : ''}">
                     <div onclick="loadChat(${c.id})" class="truncate text-sm flex-1">${c.title}</div>
-                    <button onclick="deleteChat(${c.id}, event)" class="opacity-0 group-hover:opacity-100 p-1 text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="deleteChat(${c.id}, event)" class="opacity-0 group-hover:opacity-100 p-1 text-red-500 transition-opacity"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
-            `).join(''); lucide.createIcons();
+            `).join('');
+            lucide.createIcons();
         }
 
-        function deleteChat(id, event) { event.stopPropagation(); state.chats = state.chats.filter(c => c.id !== id); localStorage.setItem('blixa_chats', JSON.stringify(state.chats)); if (state.currentChatId === id) newChat(); else renderChatList(); }
+        function deleteChat(id, event) {
+            event.stopPropagation();
+            state.chats = state.chats.filter(c => c.id !== id);
+            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
+            if (state.currentChatId === id) newChat();
+            else renderChatList();
+        }
 
         function loadChat(id) {
-            state.currentChatId = id; const chat = state.chats.find(c => c.id === id);
-            elements.welcomeView.classList.add('hidden'); elements.chatContainer.innerHTML = '';
-            chat.messages.filter(m => m.role !== 'system').forEach((m, idx) => {
-                const uiId = appendUI(m.role, m.content, idx + 1);
-                if(m.role === 'assistant') addAssistantActions(document.getElementById(uiId), uiId, m.content);
+            state.currentChatId = id;
+            const chat = state.chats.find(c => c.id === id);
+            elements.welcomeView.classList.add('hidden');
+            elements.chatContainer.innerHTML = '';
+            chat.messages.filter(m => m.role !== 'system').forEach((m, i) => {
+                const msgIdx = chat.messages.indexOf(m);
+                loadMessageToUI(m, msgIdx);
             });
-            if(window.innerWidth < 768) toggleSidebar(); renderChatList();
+            lucide.createIcons();
+            if(window.innerWidth < 768) toggleSidebar();
+            renderChatList();
         }
 
-        function newChat() { state.currentChatId = null; elements.chatContainer.innerHTML = ''; elements.chatContainer.appendChild(elements.welcomeView); elements.welcomeView.classList.remove('hidden'); renderChatList(); }
+        function newChat() {
+            state.currentChatId = null;
+            elements.chatContainer.innerHTML = '';
+            elements.chatContainer.appendChild(elements.welcomeView);
+            elements.welcomeView.classList.remove('hidden');
+            renderChatList();
+        }
 
         function saveSettings() {
-            state.apiBase = document.getElementById('api-url-input').value.trim(); state.apiKey = document.getElementById('api-key-input').value.trim(); state.model = document.getElementById('model-input').value.trim();
-            localStorage.setItem('blixa_url', state.apiBase); localStorage.setItem('blixa_key', state.apiKey); localStorage.setItem('blixa_model', state.model);
+            state.apiBase = document.getElementById('api-url-input').value.trim();
+            state.apiKey = document.getElementById('api-key-input').value.trim();
+            state.model = document.getElementById('model-input').value.trim();
+            localStorage.setItem('blixa_url', state.apiBase);
+            localStorage.setItem('blixa_key', state.apiKey);
+            localStorage.setItem('blixa_model', state.model);
+            closeModal('settings-modal');
             location.reload(); 
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
-        function toggleDarkMode() { state.isDarkMode = !state.isDarkMode; document.documentElement.classList.toggle('dark'); localStorage.setItem('blixa_theme', state.isDarkMode ? 'dark' : 'light'); }
+        function toggleDarkMode() { 
+            state.isDarkMode = !state.isDarkMode; 
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('blixa_theme', state.isDarkMode ? 'dark' : 'light');
+        }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
         if(SpeechRec) {
-            recognition = new SpeechRec(); recognition.continuous = true; recognition.interimResults = true;
+            recognition = new SpeechRec();
+            recognition.continuous = true;
+            recognition.interimResults = true;
             recognition.onresult = (e) => {
-                let final = ''; for (let i = e.resultIndex; i < e.results.length; ++i) if (e.results[i].isFinal) final += e.results[i][0].transcript;
+                let final = '';
+                for (let i = e.resultIndex; i < e.results.length; ++i) if (e.results[i].isFinal) final += e.results[i][0].transcript;
                 if(final) {
-                    recognition.stop(); elements.vStatus.innerText = "Thinking...";
-                    callBlixa([{role:"system", content:persona}, {role:"user", content:final}]).then(r => { speakText(r, null); });
+                    recognition.stop();
+                    elements.vStatus.innerText = "Thinking...";
+                    callBlixa([{role:"system", content:persona}, {role:"user", content:final}]).then(r => {
+                        elements.vStatus.innerText = "Speaking...";
+                        speakText(r, null);
+                        const msgHandler = new SpeechSynthesisUtterance(r);
+                        msgHandler.onend = () => { if(state.isVoiceActive) { elements.vStatus.innerText = "Listening..."; recognition.start(); } };
+                    });
                 }
             };
         }
 
-        function startFullVoice() { elements.voiceOverlay.style.display = 'flex'; state.isVoiceActive = true; if(recognition) recognition.start(); }
-        function stopFullVoice() { elements.voiceOverlay.style.display = 'none'; state.isVoiceActive = false; window.speechSynthesis.cancel(); if(recognition) recognition.stop(); }
+        function startFullVoice() {
+            if(!state.apiKey) { openModal('settings-modal'); return; }
+            elements.voiceOverlay.style.display = 'flex';
+            state.isVoiceActive = true;
+            if(recognition) recognition.start();
+        }
+        function stopFullVoice() {
+            elements.voiceOverlay.style.display = 'none';
+            state.isVoiceActive = false;
+            window.speechSynthesis.cancel();
+            if(recognition) recognition.stop();
+        }
 
-        elements.userInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; elements.sendBtn.disabled = !this.value.trim(); });
+        elements.userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            elements.sendBtn.disabled = !this.value.trim();
+        });
     </script>
 </body>
 </html>
