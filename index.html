@@ -51,6 +51,7 @@
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+        /* Message Bubble Transitions */
         .message-fade { animation: fadeIn 0.4s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -77,8 +78,7 @@
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-gray-50 dark:bg-[#1e1e20] border-r border-gray-200 dark:border-zinc-800 transform -translate-x-full md:translate-x-0 md:relative flex flex-col h-full">
         <div class="p-4 flex items-center justify-between">
             <div class="flex items-center gap-2 font-bold text-xl px-2">
-                <img src="blixa.png" alt="Logo" class="w-8 h-8 rounded-lg object-cover" onerror="this.outerHTML='<span class=\'text-blue-500 text-2xl\'>✦</span>'">
-                Blixa
+                <span class="text-blue-500 text-2xl">✦</span> Blixa
             </div>
             <button onclick="toggleSidebar()" class="md:hidden p-2"><i data-lucide="x"></i></button>
         </div>
@@ -102,8 +102,8 @@
     <main class="flex-1 flex flex-col relative min-w-0 h-full bg-white dark:bg-[#131314] transition-colors">
         <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-40 no-scrollbar">
             <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center py-20">
-                <div class="w-24 h-24 mb-6 relative">
-                    <img src="blixa.png" alt="Blixa Avatar" class="w-full h-full rounded-3xl shadow-xl object-cover border-4 border-white dark:border-zinc-800" onerror="this.parentElement.innerHTML='<div class=\'w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg\'><span class=\'text-white text-3xl font-bold\'>✦</span></div>'">
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                    <span class="text-white text-3xl font-bold">✦</span>
                 </div>
                 <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-500 to-red-400 bg-clip-text text-transparent mb-4">Hello, I'm Blixa</h1>
                 <p class="text-gray-500 dark:text-zinc-400 text-lg">Your personal AI assistant. How can I help today?</p>
@@ -358,16 +358,23 @@
                 ? 'bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-100 rounded-2xl rounded-tr-none shadow-sm' 
                 : 'bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 rounded-2xl rounded-tl-none shadow-sm';
 
-            // Chat Bubbles Logo Integration
-            const avatarHTML = isUser 
-                ? '<div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black border-2 bg-blue-600 border-blue-400 text-white">YOU</div>'
-                : `<div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-purple-400 bg-purple-600">
-                    <img src="blixa.png" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-white text-[10px] font-black\'>BX</span>'">
-                   </div>`;
-
             wrapper.innerHTML = `
                 <div class="flex gap-3 max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-start">
-                    ${avatarHTML}
+                    <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black border-2 ${isUser ? 'bg-blue-600 border-blue-400 text-white' : 'bg-purple-600 border-purple-400 text-white'}">
+                        ${isUser ? 'YOU' : 'BX'}
+                    </div>
                     <div class="px-4 py-3 ${bgClass}">
                         <div id="${id}" class="prose dark:prose-invert prose-sm md:prose-base transition-colors overflow-hidden">
-                            ${marked.parse(content || ''
+                            ${marked.parse(content || '')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            elements.chatContainer.appendChild(wrapper);
+            elements.chatContainer.scrollTo({ top: elements.chatContainer.scrollHeight, behavior: 'smooth' });
+            return id;
+        }
+    </script>
+</body>
+</html>
