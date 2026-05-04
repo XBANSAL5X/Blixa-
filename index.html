@@ -19,7 +19,7 @@
         html, body { height: 100%; margin: 0; transition: background-color 0.3s ease; overflow: hidden; }
         body { background-color: #ffffff; color: #1f2937; }
         .dark body { background-color: #131314; color: #e3e3e3; }
-        #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: white; z-index: 9999; transition: opacity 0.4s ease; }
+        #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: white; z-index: 9999; }
         .dark #loading { background: #131314; }
         .blixa-logo-text { background: linear-gradient(to bottom, #ff0000, #ffea00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         .full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
@@ -143,7 +143,8 @@
     </div>
 
     <script>
-        const persona = "Your name is Blixa, a feminine AI assistant. Greet ONLY ONCE at the start. Use feminine grammar always. Keep replies concise and varied.";
+        // Optimized Persona to avoid loops
+        const persona = "Your name is Blixa, a feminine AI. Greet only once per session in English. Never repeat your greeting. Use feminine grammar always. If a user repeats a greeting, just ask how to help.";
 
         let state = {
             apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
@@ -175,46 +176,28 @@
             document.getElementById('api-key-input').value = state.apiKey;
             document.getElementById('model-input').value = state.model;
             renderChatList();
-            setTimeout(() => { 
-                elements.loading.style.opacity = '0';
-                setTimeout(() => elements.loading.style.display = 'none', 400);
-            }, 800);
+            setTimeout(() => { elements.loading.style.display = 'none'; }, 800);
         };
 
         async function callBlixa(messages) {
-            if (!state.apiKey) { openModal('settings-modal'); return "Please enter your API Key."; }
             try {
-                const response = await fetch(`${state.apiBase}/chat/completions`, {
+                const res = await fetch(`${state.apiBase}/chat/completions`, {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${state.apiKey}`,
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": "https://blixa.ai", 
-                        "X-Title": "Blixa Assistant"
-                    },
-                    body: JSON.stringify({ 
-                        "model": state.model, 
-                        "messages": messages,
-                        "temperature": 0.9, 
-                        "top_p": 0.9,
-                        "repetition_penalty": 1.1
-                    })
+                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ "model": state.model, "messages": messages })
                 });
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    return data.choices[0].message.content;
-                } else if (data.error) {
-                    return "API Error: " + data.error.message;
-                }
-                return "Error: Unexpected response from server.";
-            } catch (e) {
-                return "Network Error: Please check your connection.";
+                const data = await res.json();
+                if (!data || !data.choices) throw new Error('API Error');
+                return data.choices[0].message.content;
+            } catch (e) { 
+                console.error(e);
+                return "Maaf kijiye, kuch error aaya hai. Please settings check karein."; 
             }
         }
 
         async function handleSend() {
             const val = elements.userInput.value.trim();
-            if (!val) return;
+            if (!val || !state.apiKey) return;
             
             if (!state.currentChatId) {
                 state.currentChatId = Date.now();
@@ -229,12 +212,13 @@
             
             const aiId = appendUI('assistant', 'Thinking...');
             
-            let currentContext = [...chat.messages];
-            if(state.hasGreeted && (val.toLowerCase().includes("hello") || val.toLowerCase().includes("hi"))) {
-                currentContext[0] = {role: "system", content: "Feminine AI. Natural reply without re-introduction."};
+            // Fix: Clear logic for greetings
+            let messagesToSend = [...chat.messages];
+            if(state.hasGreeted && (val.toLowerCase().includes('hello') || val.toLowerCase().includes('hi'))) {
+                messagesToSend[0] = {role:"system", content: persona + " Don't repeat greeting."};
             }
 
-            const reply = await callBlixa(currentContext);
+            const reply = await callBlixa(messagesToSend);
             state.hasGreeted = true;
 
             const msgDiv = document.getElementById(aiId);
@@ -242,7 +226,7 @@
             
             const spkBtn = document.createElement('button');
             spkBtn.id = 'spk-' + aiId;
-            spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all active:scale-90";
+            spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all";
             spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
             spkBtn.onclick = () => speakText(reply, spkBtn.id);
             msgDiv.parentElement.appendChild(spkBtn);
@@ -256,7 +240,7 @@
         function appendUI(role, text) {
             const id = 'm-' + Math.random().toString(36).substr(2, 9);
             const isUser = role === 'user';
-            const html = `<div class="flex ${isUser ? 'justify-end' : 'justify-start'} message-fade"><div class="px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800'}"><div id="${id}" class="prose dark:prose-invert prose-sm leading-relaxed">${marked.parse(text)}</div></div></div>`;
+            const html = `<div class="flex ${isUser ? 'justify-end' : 'justify-start'} message-fade"><div class="px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800'}"><div id="${id}" class="prose dark:prose-invert prose-sm">${marked.parse(text)}</div></div></div>`;
             elements.chatContainer.insertAdjacentHTML('beforeend', html);
             elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
             return id;
@@ -317,7 +301,6 @@
             localStorage.setItem('blixa_key', state.apiKey);
             localStorage.setItem('blixa_model', state.model);
             closeModal('settings-modal');
-            location.reload(); 
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
