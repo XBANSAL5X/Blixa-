@@ -195,8 +195,9 @@
                     body: JSON.stringify({ 
                         "model": state.model, 
                         "messages": messages,
-                        "temperature": 0.8, // Increased for varied replies
-                        "top_p": 0.9
+                        "temperature": 0.9, 
+                        "top_p": 0.9,
+                        "repetition_penalty": 1.1
                     })
                 });
                 const data = await response.json();
@@ -228,10 +229,9 @@
             
             const aiId = appendUI('assistant', 'Thinking...');
             
-            // Prevention of introduction loop
             let currentContext = [...chat.messages];
             if(state.hasGreeted && (val.toLowerCase().includes("hello") || val.toLowerCase().includes("hi"))) {
-                currentContext[0] = {role: "system", content: "Feminine AI. Just answer the user's greeting naturally without formal introduction."};
+                currentContext[0] = {role: "system", content: "Feminine AI. Natural reply without re-introduction."};
             }
 
             const reply = await callBlixa(currentContext);
