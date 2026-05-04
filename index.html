@@ -3,284 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Blixa AI - Perfect Edition</title>
+    <title>Blixa AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <script>
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: { extend: { colors: { skyblue: { 500: '#0ea5e9', 600: '#0284c7' } } } }
+        }
+    </script>
+
     <style>
+        html, body { height: 100%; margin: 0; transition: background-color 0.3s ease; overflow: hidden; }
+        body { background-color: #ffffff; color: #1f2937; }
+        .dark body { background-color: #131314; color: #e3e3e3; }
+        #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: white; z-index: 9999; transition: opacity 0.4s ease; }
+        .dark #loading { background: #131314; }
         .blixa-logo-text { background: linear-gradient(to bottom, #ff0000, #ffea00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         .full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
-        #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #ffffff; z-index: 9999; }
-        .dark #loading { background: #131314; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        html, body { height: 100%; overflow: hidden; }
+        .message-fade { animation: fadeIn 0.3s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        #voice-overlay { position: fixed; inset: 0; background: #131314; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+        .voice-pulse { width: 140px; height: 140px; background: #f43f5e; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); animation: pulse-ring 2s infinite; }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); } 70% { box-shadow: 0 0 0 35px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
     </style>
 </head>
-<body class="bg-white dark:bg-[#131314] text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
+<body class="flex flex-col md:flex-row min-h-screen">
 
     <div id="loading">
-        <div class="text-center">
-            <img src="blixa.png" class="w-20 h-20 mx-auto animate-bounce" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
-            <p class="mt-4 font-bold text-pink-500 tracking-tighter">INITIALIZING PERFECT BLIXA...</p>
+        <div class="flex flex-col items-center gap-4">
+            <img src="blixa.png" class="w-16 h-16 animate-pulse" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
+            <p class="font-bold text-pink-500 text-xl tracking-widest">BLIXA</p>
         </div>
     </div>
 
-    <div id="voice-overlay" class="fixed inset-0 bg-[#131314]/95 z-[100] hidden flex-col items-center justify-center text-white">
-        <div class="w-32 h-32 bg-pink-600 rounded-full flex items-center justify-center animate-pulse mb-8 shadow-[0_0_50px_rgba(219,39,119,0.5)]">
-            <i data-lucide="mic" class="w-12 h-12"></i>
+    <div id="voice-overlay">
+        <div class="voice-pulse mb-10"><i data-lucide="mic" class="w-12 h-12 text-white"></i></div>
+        <h2 id="v-status" class="text-3xl font-bold mb-4">Listening...</h2>
+        <div class="h-24 flex items-center justify-center px-8 text-center">
+            <p id="v-transcript" class="text-zinc-400 text-xl italic max-w-lg leading-relaxed">Waiting for speech...</p>
         </div>
-        <h2 id="v-status" class="text-2xl font-bold mb-4 text-pink-500">Listening...</h2>
-        <p id="v-transcript" class="text-zinc-400 italic text-xl px-10 text-center max-w-lg leading-relaxed">Waiting for speech...</p>
-        <button onclick="stopVoice()" class="mt-12 p-4 bg-zinc-800 hover:bg-red-600 rounded-full transition-all">
-            <i data-lucide="phone-off" class="w-6 h-6"></i>
+        <button onclick="stopFullVoice()" class="mt-16 p-5 bg-red-600 rounded-full hover:bg-red-700 active:scale-95 transition">
+            <i data-lucide="phone-off" class="w-8 h-8"></i>
         </button>
     </div>
 
-    <div class="flex h-screen overflow-hidden">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-zinc-50 dark:bg-[#1e1e20] border-r border-zinc-200 dark:border-zinc-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col">
-            <div class="p-6 flex items-center gap-3">
+    <header class="md:hidden flex items-center justify-between p-5 border-b border-gray-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#131314] z-40">
+        <button onclick="toggleSidebar()"><i data-lucide="menu" class="w-8 h-8"></i></button>
+        <div class="flex items-center gap-2">
+            <img src="blixa.png" class="w-8 h-8 object-contain" onerror="this.style.display='none'">
+            <span class="blixa-logo-text text-2xl">Blixa</span>
+        </div>
+        <button onclick="newChat()" class="text-pink-500"><i data-lucide="plus" class="w-8 h-8"></i></button>
+    </header>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-gray-50 dark:bg-[#1e1e20] border-r border-gray-200 dark:border-zinc-800 transform -translate-x-full md:translate-x-0 md:relative flex flex-col h-full transition-transform duration-300">
+        <div class="p-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
                 <img src="blixa.png" class="w-10 h-10 object-contain" onerror="this.style.display='none'">
                 <span class="blixa-logo-text text-3xl">Blixa</span>
             </div>
-            <button onclick="newChat()" class="mx-4 p-3 bg-pink-500 text-white rounded-xl font-bold hover:bg-pink-600 transition flex items-center justify-center gap-2">
-                <i data-lucide="plus" class="w-5 h-5"></i> New Conversation
+            <button onclick="toggleSidebar()" class="md:hidden"><i data-lucide="x" class="w-8 h-8"></i></button>
+        </div>
+        <button onclick="newChat()" class="mx-4 my-2 flex items-center gap-3 px-4 py-3 bg-gray-200/50 dark:bg-zinc-800/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition text-sm">
+            <i data-lucide="plus" class="w-4 h-4 text-pink-500"></i> New Chat
+        </button>
+        <div id="chat-list" class="flex-1 overflow-y-auto px-2 mt-4 space-y-1 no-scrollbar"></div>
+        <div class="p-4 border-t border-gray-200 dark:border-zinc-800 space-y-2 text-sm">
+            <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg">
+                <i data-lucide="moon"></i> Appearance
             </button>
-            <div id="chat-list" class="flex-1 overflow-y-auto mt-4 px-3 space-y-1 no-scrollbar"></div>
-            <div class="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-                <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 p-3 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition">
-                    <i data-lucide="moon"></i> Appearance
-                </button>
-                <button onclick="openModal()" class="w-full flex items-center gap-3 p-3 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition">
-                    <i data-lucide="settings"></i> API Settings
-                </button>
+            <button onclick="openModal('settings-modal')" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg">
+                <i data-lucide="settings"></i> Configuration
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative h-full bg-white dark:bg-[#131314]">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-44 no-scrollbar">
+            <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center py-20">
+                <img src="blixa.png" class="w-24 h-24 mb-6" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
+                <h1 class="text-4xl md:text-6xl font-black mb-4 full-gradient">Hello, I am Blixa</h1>
+                <p class="text-gray-500 dark:text-zinc-400 text-lg">Your personal AI assistant</p>
             </div>
-        </aside>
+        </div>
 
-        <main class="flex-1 flex flex-col relative min-w-0">
-            <header class="md:hidden flex items-center justify-between p-4 border-b dark:border-zinc-800 bg-white dark:bg-[#131314]">
-                <button onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
-                <span class="blixa-logo-text text-2xl font-black">Blixa</span>
-                <button onclick="newChat()"><i data-lucide="plus" class="text-pink-500"></i></button>
-            </header>
-
-            <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 pb-32 no-scrollbar">
-                <div id="welcome" class="h-full flex flex-col items-center justify-center text-center opacity-50">
-                    <img src="blixa.png" class="w-20 h-20 mb-4" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
-                    <h1 class="text-4xl font-black full-gradient">Ready to help</h1>
-                </div>
-            </div>
-
-            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white dark:from-[#131314]">
-                <div class="max-w-3xl mx-auto bg-zinc-100 dark:bg-zinc-800 rounded-3xl p-2 shadow-xl border border-transparent focus-within:border-pink-500 transition-all">
-                    <textarea id="user-input" rows="1" placeholder="Type a message..." class="w-full bg-transparent p-3 outline-none resize-none dark:text-white max-h-32"></textarea>
+        <div class="fixed bottom-0 left-0 right-0 md:left-72 bg-gradient-to-t from-white dark:from-[#131314] pt-10 pb-6 px-4">
+            <div class="max-w-3xl mx-auto relative">
+                <div class="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-3xl p-2 flex flex-col">
+                    <textarea id="user-input" rows="1" placeholder="Type here..." class="w-full bg-transparent p-3 outline-none resize-none text-gray-800 dark:text-white"></textarea>
                     <div class="flex justify-between items-center px-2 pb-1">
-                        <button onclick="startVoice()" class="p-2 text-zinc-500 hover:text-pink-500 transition"><i data-lucide="mic"></i></button>
-                        <button id="send-btn" onclick="handleSend()" class="p-2 bg-pink-500 text-white rounded-full disabled:opacity-30" disabled><i data-lucide="arrow-up"></i></button>
+                        <button onclick="startFullVoice()" class="p-2 text-zinc-500 hover:text-pink-500 transition-all"><i data-lucide="mic" class="w-6 h-6"></i></button>
+                        <button id="send-btn" onclick="handleSend()" class="p-2 bg-pink-500 hover:bg-pink-600 disabled:opacity-30 text-white rounded-full shadow-md transition-all" disabled><i data-lucide="arrow-up" class="w-6 h-6"></i></button>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <div id="settings-modal" class="fixed inset-0 z-[100] hidden bg-black/70 flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-3xl p-8 shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><i data-lucide="shield-check" class="text-pink-500"></i> System Config</h2>
-            <div class="space-y-4">
-                <input type="text" id="api-url" placeholder="Endpoint URL" class="w-full p-4 bg-zinc-100 dark:bg-zinc-800 rounded-xl outline-none border-2 border-transparent focus:border-pink-500 transition">
-                <input type="password" id="api-key" placeholder="API Secret Key" class="w-full p-4 bg-zinc-100 dark:bg-zinc-800 rounded-xl outline-none border-2 border-transparent focus:border-pink-500 transition">
-                <input type="text" id="api-model" placeholder="Model ID" class="w-full p-4 bg-zinc-100 dark:bg-zinc-800 rounded-xl outline-none border-2 border-transparent focus:border-pink-500 transition">
-                <button onclick="saveSettings()" class="w-full py-4 bg-pink-500 text-white font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all">Apply Perfection</button>
-                <button onclick="closeModal()" class="w-full text-zinc-500 text-sm">Cancel</button>
+    <div id="settings-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            <h2 class="text-xl font-bold mb-6 dark:text-white">API Configuration</h2>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Endpoint URL</label>
+                    <input type="text" id="api-url-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">API Secret Key</label>
+                    <input type="password" id="api-key-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Model ID</label>
+                    <input type="text" id="model-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                </div>
+                <div class="pt-2">
+                    <button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600 active:scale-95 transition-all">Save Settings</button>
+                    <button onclick="closeModal('settings-modal')" class="w-full py-2 mt-2 text-zinc-500 text-sm">Close</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // System Prompt - Designed to prevent repetition
-        const SYSTEM_PROMPT = "You are Blixa, a female AI assistant. RULE 1: If user says 'Hello' or similar, greet them ONLY ONCE per session. RULE 2: Use feminine grammar in all languages. RULE 3: Keep responses direct and concise. RULE 4: Do not repeat your introduction if the conversation is already active.";
+        const persona = "Your name is Blixa, a female AI assistant. Start every new conversation in English. Always use feminine grammar. Greet ONLY ONCE at the start. If the user says hello again, respond to their query directly without repeating the introduction.";
 
-        let appState = {
-            url: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
-            key: localStorage.getItem('blixa_key') || '',
+        let state = {
+            apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
+            apiKey: localStorage.getItem('blixa_key') || '',
             model: localStorage.getItem('blixa_model') || 'google/gemini-2.0-flash-001',
             chats: JSON.parse(localStorage.getItem('blixa_chats')) || [],
-            currentId: null,
-            isDark: localStorage.getItem('blixa_theme') === 'dark',
-            hasGreeted: false,
-            controller: null // To stop duplicate requests
+            currentChatId: null,
+            isDarkMode: localStorage.getItem('blixa_theme') === 'dark',
+            isVoiceActive: false,
+            hasGreeted: false
         };
 
-        const ui = {
+        const elements = {
             loading: document.getElementById('loading'),
-            chat: document.getElementById('chat-container'),
-            list: document.getElementById('chat-list'),
-            input: document.getElementById('user-input'),
-            send: document.getElementById('send-btn'),
-            voice: document.getElementById('voice-overlay'),
-            transcript: document.getElementById('v-transcript')
+            chatContainer: document.getElementById('chat-container'),
+            chatList: document.getElementById('chat-list'),
+            userInput: document.getElementById('user-input'),
+            sendBtn: document.getElementById('send-btn'),
+            welcomeView: document.getElementById('welcome-view'),
+            voiceOverlay: document.getElementById('voice-overlay'),
+            vTranscript: document.getElementById('v-transcript'),
+            vStatus: document.getElementById('v-status')
         };
 
-        // Initialize Icons and Theme
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('load', () => {
             lucide.createIcons();
-            if (appState.isDark) document.documentElement.classList.add('dark');
+            if (state.isDarkMode) document.documentElement.classList.add('dark');
+            document.getElementById('api-url-input').value = state.apiBase;
+            document.getElementById('api-key-input').value = state.apiKey;
+            document.getElementById('model-input').value = state.model;
             renderChatList();
-            
-            // Auto-hide loading screen after 1.5s (Safety Fix)
-            setTimeout(() => {
-                ui.loading.style.opacity = '0';
-                setTimeout(() => ui.loading.style.display = 'none', 500);
-            }, 1500);
+            setTimeout(() => { 
+                elements.loading.style.opacity = '0';
+                setTimeout(() => elements.loading.style.display = 'none', 400);
+            }, 800);
         });
 
-        async function handleSend() {
-            const text = ui.input.value.trim();
-            if (!text || !appState.key) return;
-
-            // Stop any existing request (Prevents Error & Repetition)
-            if (appState.controller) appState.controller.abort();
-            appState.controller = new AbortController();
-
-            if (!appState.currentId) {
-                appState.currentId = Date.now();
-                appState.chats.push({ id: appState.currentId, title: text.slice(0, 20), messages: [{role: "system", content: SYSTEM_PROMPT}] });
-                document.getElementById('welcome').classList.add('hidden');
-            }
-
-            const chat = appState.chats.find(c => c.id === appState.currentId);
-            chat.messages.push({ role: "user", content: text });
-            appendMessage("user", text);
-            ui.input.value = '';
-            ui.send.disabled = true;
-
-            const aiMsgId = appendMessage("assistant", "Thinking...");
-            
+        async function callBlixa(messages) {
             try {
-                const response = await fetch(`${appState.url}/chat/completions`, {
+                if(!state.apiKey) throw new Error("API Key Missing");
+                const res = await fetch(`${state.apiBase}/chat/completions`, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${appState.key}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: appState.model, messages: chat.messages }),
-                    signal: appState.controller.signal
+                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ "model": state.model, "messages": messages })
                 });
-
-                const data = await response.json();
-                const reply = data.choices[0].message.content;
-                
-                document.getElementById(aiMsgId).innerHTML = marked.parse(reply);
-                chat.messages.push({ role: "assistant", content: reply });
-                localStorage.setItem('blixa_chats', JSON.stringify(appState.chats));
-                addSpeaker(aiMsgId, reply);
-                renderChatList();
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    document.getElementById(aiMsgId).innerText = "Connection Error. Check API Settings.";
-                }
-            } finally {
-                ui.send.disabled = false;
+                const data = await res.json();
+                if(data.error) throw new Error(data.error.message);
+                return data.choices[0].message.content;
+            } catch (e) { 
+                console.error(e);
+                return "Error: " + e.message; 
             }
         }
 
-        function appendMessage(role, text) {
-            const id = 'msg-' + Math.random().toString(36).substr(2, 9);
+        async function handleSend() {
+            const val = elements.userInput.value.trim();
+            if (!val || !state.apiKey) return;
+            
+            if (!state.currentChatId) {
+                state.currentChatId = Date.now();
+                state.chats.push({ id: state.currentChatId, title: val.substring(0, 25), messages: [{role: "system", content: persona}] });
+                elements.welcomeView.classList.add('hidden');
+            }
+            
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            chat.messages.push({ role: 'user', content: val });
+            appendUI('user', val);
+            elements.userInput.value = '';
+            
+            const aiId = appendUI('assistant', 'Thinking...');
+            
+            // Logic to prevent repeat greeting
+            let context = [...chat.messages];
+            if(state.hasGreeted && val.toLowerCase().includes('hello')) {
+                context[0] = {role: "system", content: persona + " (User greeted again, skip introduction)"};
+            }
+
+            const reply = await callBlixa(context);
+            state.hasGreeted = true;
+            
+            const msgDiv = document.getElementById(aiId);
+            msgDiv.innerHTML = marked.parse(reply);
+            
+            const spkBtn = document.createElement('button');
+            spkBtn.id = 'spk-' + aiId;
+            spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all";
+            spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+            spkBtn.onclick = () => speakText(reply, spkBtn.id);
+            msgDiv.parentElement.appendChild(spkBtn);
+            lucide.createIcons();
+
+            chat.messages.push({ role: 'assistant', content: reply });
+            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
+            renderChatList();
+        }
+
+        function appendUI(role, text) {
+            const id = 'm-' + Math.random().toString(36).substr(2, 9);
             const isUser = role === 'user';
-            const html = `
-                <div class="flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in">
-                    <div class="max-w-[85%] p-4 rounded-2xl ${isUser ? 'bg-pink-500 text-white rounded-tr-none' : 'bg-zinc-100 dark:bg-zinc-800 rounded-tl-none'} shadow-sm">
-                        <div id="${id}" class="prose dark:prose-invert prose-sm">${marked.parse(text)}</div>
-                    </div>
-                </div>`;
-            ui.chat.insertAdjacentHTML('beforeend', html);
-            ui.chat.scrollTop = ui.chat.scrollHeight;
+            const html = `<div class="flex ${isUser ? 'justify-end' : 'justify-start'} message-fade"><div class="px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800'}"><div id="${id}" class="prose dark:prose-invert prose-sm">${marked.parse(text)}</div></div></div>`;
+            elements.chatContainer.insertAdjacentHTML('beforeend', html);
+            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
             return id;
         }
 
-        function addSpeaker(id, text) {
-            const btn = document.createElement('button');
-            btn.className = "mt-2 text-zinc-400 hover:text-pink-500 transition";
-            btn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-            btn.onclick = () => {
-                window.speechSynthesis.cancel();
-                const utt = new SpeechSynthesisUtterance(text.replace(/[#*`]/g, ''));
-                const voices = window.speechSynthesis.getVoices();
-                utt.voice = voices.find(v => v.name.includes('Female')) || voices[0];
-                window.speechSynthesis.speak(utt);
-            };
-            document.getElementById(id).appendChild(btn);
-            lucide.createIcons();
-        }
-
-        // Voice Perfection
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onresult = (e) => {
-            let final = '';
-            for (let i = e.resultIndex; i < e.results.length; ++i) {
-                if (e.results[i].isFinal) final += e.results[i][0].transcript;
-            }
-            if (final) {
-                ui.transcript.innerText = `(${final})`;
-                ui.input.value = final;
-                stopVoice();
-                handleSend();
-            }
-        };
-
-        function startVoice() { ui.voice.classList.remove('hidden'); recognition.start(); }
-        function stopVoice() { ui.voice.classList.add('hidden'); recognition.stop(); }
-
-        // Settings Logic
-        function openModal() { 
-            document.getElementById('api-url').value = appState.url;
-            document.getElementById('api-key').value = appState.key;
-            document.getElementById('api-model').value = appState.model;
-            document.getElementById('settings-modal').classList.remove('hidden'); 
-        }
-        function closeModal() { document.getElementById('settings-modal').classList.add('hidden'); }
-        function saveSettings() {
-            appState.url = document.getElementById('api-url').value;
-            appState.key = document.getElementById('api-key').value;
-            appState.model = document.getElementById('api-model').value;
-            localStorage.setItem('blixa_url', appState.url);
-            localStorage.setItem('blixa_key', appState.key);
-            localStorage.setItem('blixa_model', appState.model);
-            closeModal();
+        function speakText(text, btnId) {
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+            const utt = new SpeechSynthesisUtterance(cleanText);
+            const voices = window.speechSynthesis.getVoices();
+            const fv = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi'));
+            if(fv) utt.voice = fv;
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('text-pink-500');
+            utt.onend = () => { if(btn) btn.classList.remove('text-pink-500'); };
+            window.speechSynthesis.speak(utt);
         }
 
         function renderChatList() {
-            ui.list.innerHTML = appState.chats.slice().reverse().map(c => `
-                <div onclick="loadChat(${c.id})" class="p-3 rounded-xl cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 truncate text-sm ${appState.currentId === c.id ? 'bg-pink-500/10 text-pink-500 font-bold' : ''}">
-                    ${c.title}
-                </div>
-            `).join('');
+            elements.chatList.innerHTML = state.chats.slice().reverse().map(c => `<div onclick="loadChat(${c.id})" class="p-3 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 truncate text-sm mb-1 ${state.currentChatId === c.id ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : ''}">${c.title}</div>`).join('');
         }
 
         function loadChat(id) {
-            appState.currentId = id;
-            const chat = appState.chats.find(c => c.id === id);
-            document.getElementById('welcome').classList.add('hidden');
-            ui.chat.innerHTML = '';
-            chat.messages.filter(m => m.role !== 'system').forEach(m => appendMessage(m.role, m.content));
+            state.currentChatId = id;
+            const chat = state.chats.find(c => c.id === id);
+            elements.welcomeView.classList.add('hidden');
+            elements.chatContainer.innerHTML = '';
+            chat.messages.filter(m => m.role !== 'system').forEach(m => {
+                const aiId = appendUI(m.role, m.content);
+                if(m.role === 'assistant') {
+                    const msgDiv = document.getElementById(aiId);
+                    const spkBtn = document.createElement('button');
+                    spkBtn.id = 'spk-' + aiId;
+                    spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500";
+                    spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+                    spkBtn.onclick = () => speakText(m.content, spkBtn.id);
+                    msgDiv.parentElement.appendChild(spkBtn);
+                }
+            });
+            lucide.createIcons();
             if(window.innerWidth < 768) toggleSidebar();
-            renderChatList();
         }
 
         function newChat() {
-            appState.currentId = null;
-            ui.chat.innerHTML = '<div id="welcome" class="h-full flex flex-col items-center justify-center text-center opacity-50"><img src="blixa.png" class="w-20 h-20 mb-4" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/4712/4712139.png\'"><h1 class="text-4xl font-black full-gradient">Ready to help</h1></div>';
+            state.currentChatId = null;
+            state.hasGreeted = false;
+            elements.chatContainer.innerHTML = '';
+            elements.chatContainer.appendChild(elements.welcomeView);
+            elements.welcomeView.classList.remove('hidden');
             renderChatList();
         }
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
-        function toggleDarkMode() {
-            appState.isDark = !appState.isDark;
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('blixa_theme', appState.isDark ? 'dark' : 'light');
+        function saveSettings() {
+            state.apiBase = document.getElementById('api-url-input').value.trim();
+            state.apiKey = document.getElementById('api-key-input').value.trim();
+            state.model = document.getElementById('model-input').value.trim();
+            localStorage.setItem('blixa_url', state.apiBase);
+            localStorage.setItem('blixa_key', state.apiKey);
+            localStorage.setItem('blixa_model', state.model);
+            closeModal('settings-modal');
         }
 
-        ui.input.oninput = () => { ui.send.disabled = !ui.input.value.trim(); };
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+        function toggleDarkMode() { 
+            state.isDarkMode = !state.isDarkMode; 
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('blixa_theme', state.isDarkMode ? 'dark' : 'light');
+        }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        if(SpeechRec) {
+            recognition = new SpeechRec();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.onresult = (e) => {
+                let inter = '', final = '';
+                for (let i = e.resultIndex; i < e.results.length; ++i) {
+                    if (e.results[i].isFinal) final += e.results[i][0].transcript;
+                    else inter += e.results[i][0].transcript;
+                }
+                let live = final || inter;
+                if(live) {
+                    elements.vTranscript.innerText = `(${live})`;
+                    elements.vTranscript.className = "text-white text-xl italic font-medium";
+                }
+                if (final) {
+                    recognition.stop();
+                    elements.vStatus.innerText = "Thinking...";
+                    callBlixa([{role:"system", content:persona}, {role:"user", content:final}]).then(r => {
+                        state.hasGreeted = true;
+                        elements.vStatus.innerText = "Speaking...";
+                        const utt = new SpeechSynthesisUtterance(r.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, ''));
+                        const fv = window.speechSynthesis.getVoices().find(v => v.name.includes('Female') || v.name.includes('hindi'));
+                        if(fv) utt.voice = fv;
+                        utt.onend = () => { if(state.isVoiceActive) { elements.vStatus.innerText = "Listening..."; recognition.start(); } };
+                        window.speechSynthesis.speak(utt);
+                    });
+                }
+            };
+        }
+
+        function startFullVoice() {
+            if(!state.apiKey) { openModal('settings-modal'); return; }
+            elements.voiceOverlay.style.display = 'flex';
+            state.isVoiceActive = true;
+            if(recognition) recognition.start();
+        }
+        function stopFullVoice() {
+            elements.voiceOverlay.style.display = 'none';
+            state.isVoiceActive = false;
+            window.speechSynthesis.cancel();
+            if(recognition) recognition.stop();
+        }
+        elements.userInput.addEventListener('input', function() {
+            elements.sendBtn.disabled = !this.value.trim();
+        });
     </script>
 </body>
 </html>
