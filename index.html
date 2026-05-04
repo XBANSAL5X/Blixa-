@@ -85,8 +85,13 @@
         <button onclick="newChat()" class="mx-4 my-2 flex items-center gap-3 px-4 py-3 bg-gray-200/50 dark:bg-zinc-800/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition text-sm">
             <i data-lucide="plus" class="w-4 h-4 text-pink-500"></i> New Chat
         </button>
-        <div id="chat-list" class="flex-1 overflow-y-auto px-2 mt-4 space-y-1 no-scrollbar"></div>
+        
+        <div id="chat-list" class="flex-1 overflow-y-auto px-2 mt-4 space-y-1 no-scrollbar text-gray-700 dark:text-zinc-300"></div>
+        
         <div class="p-4 border-t border-gray-200 dark:border-zinc-800 space-y-2 text-sm">
+            <button onclick="clearAllChats()" class="w-full flex items-center gap-3 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Clear All History
+            </button>
             <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg">
                 <i data-lucide="moon"></i> Appearance
             </button>
@@ -107,8 +112,8 @@
 
         <div class="fixed bottom-0 left-0 right-0 md:left-72 bg-gradient-to-t from-white dark:from-[#131314] pt-10 pb-6 px-4">
             <div class="max-w-3xl mx-auto relative">
-                <div class="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-3xl p-2 flex flex-col">
-                    <textarea id="user-input" rows="1" placeholder="Type here..." class="w-full bg-transparent p-3 outline-none resize-none text-gray-800 dark:text-white"></textarea>
+                <div class="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-3xl p-2 flex flex-col shadow-sm">
+                    <textarea id="user-input" rows="1" placeholder="Type here..." class="w-full bg-transparent p-3 outline-none resize-none text-gray-800 dark:text-white max-h-48"></textarea>
                     <div class="flex justify-between items-center px-2 pb-1">
                         <button onclick="startFullVoice()" class="p-2 text-zinc-500 hover:text-pink-500 transition"><i data-lucide="mic" class="w-6 h-6"></i></button>
                         <button id="send-btn" onclick="handleSend()" class="p-2 bg-pink-500 hover:bg-pink-600 disabled:opacity-30 text-white rounded-full shadow-md" disabled><i data-lucide="arrow-up" class="w-6 h-6"></i></button>
@@ -123,28 +128,27 @@
             <h2 class="text-xl font-bold mb-6 dark:text-white">API Configuration</h2>
             <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Endpoint URL</label>
-                    <input type="text" id="api-url-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Endpoint URL (Must end in /v1)</label>
+                    <input type="text" id="api-url-input" placeholder="https://api.openai.com/v1" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">API Key</label>
                     <input type="password" id="api-key-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Model</label>
-                    <input type="text" id="model-input" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
+                    <label class="block text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase mb-1">Model Name</label>
+                    <input type="text" id="model-input" placeholder="gpt-3.5-turbo" class="w-full p-3 rounded-xl border dark:border-zinc-700 bg-transparent dark:text-white outline-none">
                 </div>
                 <div class="pt-2">
-                    <button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600">Save</button>
-                    <button onclick="closeModal('settings-modal')" class="w-full py-2 mt-2 text-zinc-500 text-sm">Close</button>
+                    <button onclick="saveSettings()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:bg-pink-600 transition">Save Changes</button>
+                    <button onclick="closeModal('settings-modal')" class="w-full py-2 mt-2 text-zinc-500 text-sm">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Optimized Persona to avoid loops
-        const persona = "Your name is Blixa, a feminine AI. Greet only once per session in English. Never repeat your greeting. Use feminine grammar always. If a user repeats a greeting, just ask how to help.";
+        const persona = "Your name is Blixa, a feminine AI assistant. Always speak in a polite, helpful, and feminine manner. Greet only once. If you've already greeted, focus on the user's request.";
 
         let state = {
             apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
@@ -154,7 +158,7 @@
             currentChatId: null,
             isDarkMode: localStorage.getItem('blixa_theme') === 'dark',
             isVoiceActive: false,
-            hasGreeted: false
+            isEditing: null
         };
 
         const elements = {
@@ -181,17 +185,24 @@
 
         async function callBlixa(messages) {
             try {
-                const res = await fetch(`${state.apiBase}/chat/completions`, {
+                // Ensure URL ends correctly
+                const baseUrl = state.apiBase.endsWith('/') ? state.apiBase.slice(0, -1) : state.apiBase;
+                const response = await fetch(`${baseUrl}/chat/completions`, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
+                    headers: { 
+                        "Authorization": `Bearer ${state.apiKey}`, 
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": window.location.href, // Required for some platforms like OpenRouter
+                        "X-Title": "Blixa AI"
+                    },
                     body: JSON.stringify({ "model": state.model, "messages": messages })
                 });
-                const data = await res.json();
-                if (!data || !data.choices) throw new Error('API Error');
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
                 return data.choices[0].message.content;
             } catch (e) { 
                 console.error(e);
-                return "Maaf kijiye, kuch error aaya hai. Please settings check karein."; 
+                return `Error: ${e.message}. Please check your API settings.`; 
             }
         }
 
@@ -201,49 +212,93 @@
             
             if (!state.currentChatId) {
                 state.currentChatId = Date.now();
-                state.chats.push({ id: state.currentChatId, title: val.substring(0, 25), messages: [{role: "system", content: persona}] });
+                state.chats.push({ id: state.currentChatId, title: val.substring(0, 30), messages: [{role: "system", content: persona}] });
                 elements.welcomeView.classList.add('hidden');
             }
             
             const chat = state.chats.find(c => c.id === state.currentChatId);
-            chat.messages.push({ role: 'user', content: val });
-            appendUI('user', val);
-            elements.userInput.value = '';
             
-            const aiId = appendUI('assistant', 'Thinking...');
-            
-            // Fix: Clear logic for greetings
-            let messagesToSend = [...chat.messages];
-            if(state.hasGreeted && (val.toLowerCase().includes('hello') || val.toLowerCase().includes('hi'))) {
-                messagesToSend[0] = {role:"system", content: persona + " Don't repeat greeting."};
+            // Check if editing
+            if (state.isEditing) {
+                const msgIndex = chat.messages.findIndex(m => m.tempId === state.isEditing);
+                if (msgIndex > -1) {
+                    chat.messages[msgIndex].content = val;
+                    state.isEditing = null;
+                    elements.userInput.value = '';
+                    loadChat(state.currentChatId); // Refresh UI
+                    return;
+                }
             }
 
-            const reply = await callBlixa(messagesToSend);
-            state.hasGreeted = true;
-
+            const tempId = Date.now();
+            chat.messages.push({ role: 'user', content: val, tempId: tempId });
+            appendUI('user', val, tempId);
+            elements.userInput.value = '';
+            
+            const aiTempId = Date.now() + 1;
+            const aiId = appendUI('assistant', 'Thinking...', aiTempId);
+            
+            const reply = await callBlixa(chat.messages.map(({role, content}) => ({role, content})));
+            
             const msgDiv = document.getElementById(aiId);
             msgDiv.innerHTML = marked.parse(reply);
+            chat.messages.push({ role: 'assistant', content: reply, tempId: aiTempId });
             
-            const spkBtn = document.createElement('button');
-            spkBtn.id = 'spk-' + aiId;
-            spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500 transition-all";
-            spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-            spkBtn.onclick = () => speakText(reply, spkBtn.id);
-            msgDiv.parentElement.appendChild(spkBtn);
-            lucide.createIcons();
+            saveToLocal();
+            renderChatList();
+            refreshIcons(aiId, reply);
+        }
 
-            chat.messages.push({ role: 'assistant', content: reply });
-            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
+        function appendUI(role, text, tempId) {
+            const id = 'm-' + tempId;
+            const isUser = role === 'user';
+            const html = `
+                <div class="group flex ${isUser ? 'justify-end' : 'justify-start'} message-fade mb-4">
+                    <div class="relative px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200'}">
+                        <div id="${id}" class="prose ${isUser ? 'prose-invert' : 'dark:prose-invert'} prose-sm">${marked.parse(text)}</div>
+                        <div class="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            ${isUser ? `<button onclick="editMsg(${tempId})" class="text-xs text-white/70 hover:text-white"><i data-lucide="edit-3" class="w-3 h-3"></i></button>` : ''}
+                            <button onclick="speakText(\`${text.replace(/`/g, '\\`')}\`, 'spk-${id}')" id="spk-${id}" class="text-xs ${isUser ? 'text-white/70 hover:text-white' : 'text-zinc-400 hover:text-pink-500'}">
+                                <i data-lucide="volume-2" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            elements.chatContainer.insertAdjacentHTML('beforeend', html);
+            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+            lucide.createIcons();
+            return id;
+        }
+
+        function editMsg(tempId) {
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            const msg = chat.messages.find(m => m.tempId === tempId);
+            if (msg) {
+                elements.userInput.value = msg.content;
+                state.isEditing = tempId;
+                elements.userInput.focus();
+            }
+        }
+
+        function deleteChat(id, event) {
+            event.stopPropagation();
+            state.chats = state.chats.filter(c => c.id !== id);
+            if (state.currentChatId === id) newChat();
+            saveToLocal();
             renderChatList();
         }
 
-        function appendUI(role, text) {
-            const id = 'm-' + Math.random().toString(36).substr(2, 9);
-            const isUser = role === 'user';
-            const html = `<div class="flex ${isUser ? 'justify-end' : 'justify-start'} message-fade"><div class="px-4 py-3 rounded-2xl max-w-[85%] ${isUser ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-zinc-800'}"><div id="${id}" class="prose dark:prose-invert prose-sm">${marked.parse(text)}</div></div></div>`;
-            elements.chatContainer.insertAdjacentHTML('beforeend', html);
-            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-            return id;
+        function clearAllChats() {
+            if (confirm("Are you sure you want to delete all chat history?")) {
+                state.chats = [];
+                newChat();
+                saveToLocal();
+                renderChatList();
+            }
+        }
+
+        function refreshIcons(id, text) {
+            lucide.createIcons();
         }
 
         function speakText(text, btnId) {
@@ -251,16 +306,25 @@
             const cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
             const utt = new SpeechSynthesisUtterance(cleanText);
             const voices = window.speechSynthesis.getVoices();
-            const fVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi'));
+            const fVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Hindi') || v.lang.includes('hi'));
             if(fVoice) utt.voice = fVoice;
+            
             const btn = document.getElementById(btnId);
             if(btn) btn.classList.add('text-pink-500');
-            utt.onend = () => { if(btn) btn.classList.remove('text-pink-500'); };
+            utt.onend = () => btn?.classList.remove('text-pink-500');
             window.speechSynthesis.speak(utt);
         }
 
         function renderChatList() {
-            elements.chatList.innerHTML = state.chats.slice().reverse().map(c => `<div onclick="loadChat(${c.id})" class="p-3 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 truncate text-sm mb-1 ${state.currentChatId === c.id ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : ''}">${c.title}</div>`).join('');
+            elements.chatList.innerHTML = state.chats.slice().reverse().map(c => `
+                <div onclick="loadChat(${c.id})" class="group flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 mb-1 ${state.currentChatId === c.id ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : ''}">
+                    <span class="truncate flex-1">${c.title}</span>
+                    <button onclick="deleteChat(${c.id}, event)" class="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-500 transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
         }
 
         function loadChat(id) {
@@ -269,27 +333,19 @@
             elements.welcomeView.classList.add('hidden');
             elements.chatContainer.innerHTML = '';
             chat.messages.filter(m => m.role !== 'system').forEach(m => {
-                const aiId = appendUI(m.role, m.content);
-                if(m.role === 'assistant') {
-                    const msgDiv = document.getElementById(aiId);
-                    const spkBtn = document.createElement('button');
-                    spkBtn.id = 'spk-' + aiId;
-                    spkBtn.className = "mt-2 p-1 text-zinc-400 hover:text-pink-500";
-                    spkBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-                    spkBtn.onclick = () => speakText(m.content, spkBtn.id);
-                    msgDiv.parentElement.appendChild(spkBtn);
-                }
+                appendUI(m.role, m.content, m.tempId);
             });
-            lucide.createIcons();
             if(window.innerWidth < 768) toggleSidebar();
+            renderChatList();
         }
 
         function newChat() {
             state.currentChatId = null;
-            state.hasGreeted = false;
+            state.isEditing = null;
             elements.chatContainer.innerHTML = '';
             elements.chatContainer.appendChild(elements.welcomeView);
             elements.welcomeView.classList.remove('hidden');
+            elements.userInput.value = '';
             renderChatList();
         }
 
@@ -303,64 +359,5 @@
             closeModal('settings-modal');
         }
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
-        function toggleDarkMode() { 
-            state.isDarkMode = !state.isDarkMode; 
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('blixa_theme', state.isDarkMode ? 'dark' : 'light');
-        }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-        if(SpeechRec) {
-            recognition = new SpeechRec();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.onresult = (e) => {
-                let interim = '', final = '';
-                for (let i = e.resultIndex; i < e.results.length; ++i) {
-                    if (e.results[i].isFinal) final += e.results[i][0].transcript;
-                    else interim += e.results[i][0].transcript;
-                }
-                let liveOutput = final || interim;
-                if(liveOutput) {
-                    elements.vTranscript.innerText = `(${liveOutput})`;
-                    elements.vTranscript.className = "text-white text-xl italic font-medium";
-                }
-                if (final) {
-                    recognition.stop();
-                    elements.vStatus.innerText = "Thinking...";
-                    callBlixa([{role:"system", content:persona}, {role:"user", content:final}]).then(r => {
-                        state.hasGreeted = true;
-                        elements.vStatus.innerText = "Speaking...";
-                        const utt = new SpeechSynthesisUtterance(r.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, ''));
-                        const voices = window.speechSynthesis.getVoices();
-                        const fv = voices.find(v => v.name.includes('Female') || v.name.includes('Kalpana') || v.name.includes('hindi'));
-                        if(fv) utt.voice = fv;
-                        utt.onend = () => { if(state.isVoiceActive) { elements.vStatus.innerText = "Listening..."; recognition.start(); } };
-                        window.speechSynthesis.speak(utt);
-                    });
-                }
-            };
-        }
-
-        function startFullVoice() {
-            if(!state.apiKey) { openModal('settings-modal'); return; }
-            elements.voiceOverlay.style.display = 'flex';
-            state.isVoiceActive = true;
-            if(recognition) recognition.start();
-        }
-        function stopFullVoice() {
-            elements.voiceOverlay.style.display = 'none';
-            state.isVoiceActive = false;
-            window.speechSynthesis.cancel();
-            if(recognition) recognition.stop();
-        }
-        elements.userInput.addEventListener('input', function() {
-            elements.sendBtn.disabled = !this.value.trim();
-        });
-    </script>
-</body>
-</html>
+        function saveToLocal() {
+            localStorage.s
