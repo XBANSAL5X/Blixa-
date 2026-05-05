@@ -336,4 +336,72 @@
         }
 
         async function handleSend() {
-            const val = elements.
+            const val = elements.userInput.value.trim();
+            if (!val || state.isTyping) return;
+            
+            if (!state.currentChatId) {
+                state.currentChatId = Date.now();
+                state.chats.push({ id: state.currentChatId, title: val.substring(0, 25), messages: [] });
+                elements.welcomeView.classList.add('hidden');
+            }
+            
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            chat.messages.push({ role: 'user', content: val });
+            
+            appendUI('user', val);
+            elements.userInput.value = '';
+            autoResize(elements.userInput);
+            
+            state.isTyping = true;
+            const aiId = appendUI('assistant', '...');
+            
+            const reply = await callAPI(chat.messages);
+            await typeWriter(aiId, reply);
+            
+            chat.messages.push({ role: 'assistant', content: reply });
+            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
+            state.isTyping = false;
+            renderChatList();
+        }
+
+        async function callAPI(messages) {
+            try {
+                const response = await fetch(`${state.apiBase}/chat/completions`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ "model": state.model, "messages": messages })
+                });
+                const data = await response.json();
+                return data.choices?.[0]?.message?.content || "Signal lost.";
+            } catch (e) { return "ERROR: Connection refused."; }
+        }
+
+        function appendUI(role, text) {
+            const id = 'm-' + Math.random().toString(36).substr(2, 9);
+            const isUser = role === 'user';
+            const html = `
+                <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} w-full">
+                    <div class="bubble ${isUser ? 'bubble-user' : 'bubble-ai'}">
+                        <div id="${id}" class="prose dark:prose-invert prose-sm">${isUser ? marked.parse(text) : text}</div>
+                    </div>
+                </div>`;
+            elements.chatContainer.insertAdjacentHTML('beforeend', html);
+            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+            return id;
+        }
+
+        async function typeWriter(id, text) {
+            const el = document.getElementById(id);
+            el.innerHTML = '';
+            const words = text.split(' ');
+            let current = '';
+            for(const word of words) {
+                current += word + ' ';
+                el.innerHTML = marked.parse(current);
+                elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+                await new Promise(r => setTimeout(r, 15));
+            }
+        }
+    </script>
+</body>
+</html>
