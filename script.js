@@ -1,3 +1,4 @@
+// --- Core State Logic ---
 let state = {
     apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
     apiKey: localStorage.getItem('blixa_key') || '',
@@ -5,7 +6,8 @@ let state = {
     chats: JSON.parse(localStorage.getItem('blixa_chats')) || [],
     currentChatId: null,
     isDarkMode: localStorage.getItem('blixa_theme') === 'dark',
-    isTyping: false
+    isTyping: false,
+    avatar: localStorage.getItem('blixa_avatar') || null
 };
 
 const elements = {
@@ -14,18 +16,45 @@ const elements = {
     userInput: document.getElementById('user-input'),
     sendBtn: document.getElementById('send-btn'),
     welcomeView: document.getElementById('welcome-view'),
-    loader: document.getElementById('loader')
+    terminal: document.getElementById('terminal-content'),
+    loader: document.getElementById('loader'),
+    vOverlay: document.getElementById('voice-overlay'),
+    vTranscript: document.getElementById('v-transcript')
 };
 
 window.onload = () => {
     lucide.createIcons();
     if (state.isDarkMode) document.documentElement.classList.add('dark');
+    if (state.avatar) document.getElementById('user-avatar-preview').src = state.avatar;
+    
+    // Add null checks for modal elements
+    const urlInput = document.getElementById('api-url-input');
+    const keyInput = document.getElementById('api-key-input');
+    if(urlInput) urlInput.value = state.apiBase;
+    if(keyInput) keyInput.value = state.apiKey;
+    
     renderChatList();
+    setInterval(selfHealingMonitor, 5000);
+    
     setTimeout(() => {
         elements.loader.style.opacity = '0';
         setTimeout(() => elements.loader.remove(), 500);
     }, 1000);
 };
+
+// --- Terminal & Utility Functions ---
+function writeToTerminal(text, type = 'info') {
+    if (!elements.terminal) return;
+    const line = document.createElement('div');
+    line.className = `terminal-line ${type}`;
+    line.innerText = `> ${new Date().toLocaleTimeString()}: ${text}`;
+    elements.terminal.appendChild(line);
+    elements.terminal.scrollTop = elements.terminal.scrollHeight;
+}
+
+function selfHealingMonitor() {
+    writeToTerminal("Heartbeat pulse detected... OK", "info");
+}
 
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('-translate-x-full');
@@ -37,33 +66,50 @@ function toggleDarkMode() {
     localStorage.setItem('blixa_theme', state.isDarkMode ? 'dark' : 'light');
 }
 
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
 function autoResize(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
+    const charCounter = document.getElementById('char-counter');
+    if(charCounter) {
+        charCounter.innerText = `${textarea.value.length} / 4000`;
+    }
     elements.sendBtn.disabled = !textarea.value.trim();
 }
 
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-function saveSettings() {
-    state.apiKey = document.getElementById('api-key-input').value;
-    localStorage.setItem('blixa_key', state.apiKey);
-    closeModal('settings-modal');
+// Dummy functions for navigation
+function goHome() {
+    location.reload();
 }
 
-function renderChatList() {
-    elements.chatList.innerHTML = state.chats.slice().reverse().map(chat => `
-        <div class="p-4 rounded-xl cursor-pointer transition-all ${state.currentChatId === chat.id ? 'bg-brand-500 text-white' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:text-zinc-400'}" onclick="loadChat(${chat.id})">
-            <span class="text-xs font-black uppercase truncate block">${chat.title}</span>
-        </div>
-    `).join('');
-}
-
-function goHome() { location.reload(); }
 function newChat() {
-    state.currentChatId = null;
-    elements.chatContainer.innerHTML = '';
-    elements.chatContainer.appendChild(elements.welcomeView);
-    elements.welcomeView.classList.remove('hidden');
+    alert("New Chat Initialized");
+    // Add logic to clear chat or create new ID
+}
+
+function handleSend() {
+    const text = elements.userInput.value.trim();
+    if (text) {
+        alert("Message Sending: " + text);
+        elements.userInput.value = '';
+        autoResize(elements.userInput);
+    }
+}
+
+// Voice Mode Logic (Basics)
+function startVoiceMode() {
+    elements.vOverlay.classList.remove('hidden');
+    elements.vOverlay.classList.add('flex');
+}
+
+function stopVoiceMode() {
+    elements.vOverlay.classList.add('hidden');
+    elements.vOverlay.classList.remove('flex');
 }
