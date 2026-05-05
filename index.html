@@ -10,13 +10,50 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css">
-    
-    <script src="tailwind-config.js"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: { 
+                extend: { 
+                    colors: { 
+                        brand: { 500: '#ec4899', 600: '#db2777' },
+                        surface: { 50: '#f8fafc', 900: '#0f172a', 950: '#09090b' } 
+                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                } 
+            }
+        }
+    </script>
+
+    <style>
+        /* --- UI CORE STYLES --- */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #27272a; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s ease; }
+        .blixa-gradient-text { background: linear-gradient(135deg, #ff0000, #ffea00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 0, 0, 0.05); }
+        .dark .glass-card { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+
+        #blixa-terminal { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        .terminal-line { margin-bottom: 2px; color: #10b981; }
+        .terminal-line.info { color: #3b82f6; }
+
+        .voice-active-overlay { background: rgba(9, 9, 11, 0.98); backdrop-filter: blur(40px); }
+        .pulse { position: absolute; border-radius: 50%; border: 2px solid #ec4899; animation: pulse-out 2s infinite; }
+        @keyframes pulse-out { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+
+        .status-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
 </head>
 <body class="flex h-screen bg-surface-50 dark:bg-surface-950 overflow-hidden">
 
-    <div id="loader" class="fixed inset-0 z-[999] bg-white dark:bg-surface-950 flex flex-col items-center justify-center">
+    <div id="loader" class="fixed inset-0 z-[999] bg-white dark:bg-surface-950 flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="relative flex items-center justify-center">
             <div class="w-24 h-24 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
             <img src="blixa.png" class="absolute w-12 h-12 rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
@@ -24,76 +61,51 @@
         <p class="mt-6 blixa-gradient-text text-xl font-black uppercase tracking-widest">Neural Link Connecting</p>
     </div>
 
-    <div id="blixa-terminal" class="fixed bottom-32 right-6 z-50 w-72 h-48 bg-black/90 rounded-2xl border border-white/10 p-4 shadow-2xl translate-x-[200%] md:translate-x-0 hidden md:block">
+    <div id="blixa-terminal" class="fixed bottom-32 right-6 z-50 w-72 h-48 bg-black/90 rounded-2xl border border-white/10 p-4 shadow-2xl hidden md:block">
         <div class="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
             <div class="flex items-center gap-2">
                 <div class="status-pulse"></div>
                 <span class="text-[10px] font-bold text-white uppercase tracking-tighter">Self-Healing Terminal</span>
             </div>
-            <button onclick="toggleTerminal()" class="text-zinc-500 hover:text-white"><i data-lucide="minus" class="w-3 h-3"></i></button>
         </div>
         <div id="terminal-content" class="h-32 overflow-y-auto no-scrollbar">
-            <div class="terminal-line">> Initializing security layer... OK</div>
-            <div class="terminal-line">> Checking logic gates... OK</div>
-            <div class="terminal-line info">> System status: Nominal</div>
+            <div class="terminal-line">> Initializing system... OK</div>
+            <div class="terminal-line info">> Status: Ready for commands</div>
         </div>
-    </div>
-
-    <div id="voice-overlay" class="fixed inset-0 z-[100] hidden voice-active-overlay items-center justify-center flex-col">
-        <div class="relative w-48 h-48 flex items-center justify-center mb-12">
-            <div class="pulse w-full h-full"></div>
-            <div class="pulse w-full h-full" style="animation-delay: 0.5s"></div>
-            <div class="w-32 h-32 bg-brand-500 rounded-full flex items-center justify-center shadow-2xl relative z-10">
-                <i data-lucide="mic" class="w-14 h-14 text-white"></i>
-            </div>
-        </div>
-        <h2 id="v-status" class="text-4xl font-black text-white mb-2">Analyzing Voice</h2>
-        <p id="v-transcript" class="text-zinc-500 text-xl italic max-w-lg text-center min-h-[3rem]">Say something...</p>
-        <button onclick="stopVoiceMode()" class="mt-16 p-5 bg-white/5 hover:bg-red-500/20 rounded-full border border-white/10 transition-all">
-            <i data-lucide="phone-off" class="w-8 h-8 text-red-500"></i>
-        </button>
     </div>
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-80 glass-card border-r transform -translate-x-full lg:translate-x-0 lg:relative transition-transform duration-500 flex flex-col">
         <div class="p-6">
             <div class="flex items-center justify-between mb-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-orange-400 flex items-center justify-center shadow-lg">
-                        <img src="blixa.png" class="w-8 h-8 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-orange-400 flex items-center justify-center">
+                        <img src="blixa.png" class="w-8 h-8" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
                     </div>
                     <span class="blixa-gradient-text text-2xl font-black">Blixa</span>
                 </div>
                 <button onclick="toggleSidebar()" class="lg:hidden p-2"><i data-lucide="x"></i></button>
             </div>
-            <button onclick="newChat()" class="w-full flex items-center justify-center gap-3 py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-bold shadow-xl shadow-brand-500/30 transition-all active:scale-95 mb-8">
+            <button onclick="location.reload()" class="w-full flex items-center justify-center gap-3 py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-bold shadow-xl transition-all active:scale-95 mb-8">
                 <i data-lucide="sparkles" class="w-5 h-5"></i> New Intelligence
             </button>
-            <div class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">Memory Archives</div>
         </div>
-        <div id="chat-list" class="flex-1 overflow-y-auto px-4 space-y-3 no-scrollbar"></div>
+        <div class="flex-1 overflow-y-auto px-4 space-y-3 no-scrollbar" id="chat-list"></div>
         <div class="p-4 border-t border-zinc-200 dark:border-zinc-800">
-            <div class="flex items-center gap-3 p-4 bg-zinc-100/50 dark:bg-zinc-900/50 rounded-2xl relative">
-                <div class="relative">
-                    <img id="user-avatar-preview" src="https://ui-avatars.com/api/?name=User&background=random" class="w-11 h-11 rounded-full object-cover border-2 border-brand-500">
-                    <label class="absolute -bottom-1 -right-1 p-1 bg-white dark:bg-zinc-800 rounded-full cursor-pointer shadow-md">
-                        <i data-lucide="camera" class="w-3 h-3 text-brand-500"></i>
-                        <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="updateAvatar(this)">
-                    </label>
-                </div>
-                <div class="flex-1 overflow-hidden">
-                    <p class="text-xs font-black truncate uppercase">Operator 01</p>
-                    <p class="text-[9px] font-bold text-green-500 tracking-widest uppercase">Verified Admin</p>
+            <div class="flex items-center gap-3 p-4 bg-zinc-100/50 dark:bg-zinc-900/50 rounded-2xl">
+                <img src="https://ui-avatars.com/api/?name=User&background=random" class="w-11 h-11 rounded-full border-2 border-brand-500">
+                <div>
+                    <p class="text-xs font-black uppercase">Operator 01</p>
+                    <p class="text-[9px] font-bold text-green-500 tracking-widest uppercase">Online</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-4">
-                <button onclick="toggleDarkMode()" class="p-3 flex flex-col items-center gap-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition">
-                    <i data-lucide="sun" class="w-4 h-4 text-orange-400 dark:hidden"></i>
-                    <i data-lucide="moon" class="w-4 h-4 text-brand-500 hidden dark:block"></i>
-                    <span class="text-[9px] font-black">THEME</span>
+                <button onclick="toggleDarkMode()" class="p-3 flex flex-col items-center gap-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl">
+                    <i data-lucide="moon" class="w-4 h-4 text-brand-500"></i>
+                    <span class="text-[9px] font-black uppercase">Theme</span>
                 </button>
-                <button onclick="openModal('settings-modal')" class="p-3 flex flex-col items-center gap-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition">
+                <button onclick="alert('Settings Open')" class="p-3 flex flex-col items-center gap-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl">
                     <i data-lucide="settings" class="w-4 h-4 text-zinc-400"></i>
-                    <span class="text-[9px] font-black">CORE</span>
+                    <span class="text-[9px] font-black uppercase">Core</span>
                 </button>
             </div>
         </div>
@@ -101,76 +113,87 @@
 
     <main class="flex-1 flex flex-col relative overflow-hidden">
         <header class="flex items-center justify-between p-4 md:px-8 glass-card border-b z-40">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl"><i data-lucide="menu"></i></button>
-                <div class="flex items-center gap-2">
-                    <img src="blixa.png" class="w-7 h-7 rounded-lg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
-                    <span class="text-lg font-black tracking-tight">BLIXA <span class="text-brand-500">CORE</span></span>
-                </div>
+            <button onclick="toggleSidebar()" class="lg:hidden p-2"><i data-lucide="menu"></i></button>
+            <div class="flex items-center gap-2">
+                <span class="text-lg font-black tracking-tight">BLIXA <span class="text-brand-500">CORE</span></span>
             </div>
-            <div class="flex items-center gap-2 md:gap-3">
-                <button onclick="goHome()" class="p-2.5 text-zinc-500 hover:text-brand-500 hover:bg-brand-500/10 rounded-xl transition-all"><i data-lucide="home" class="w-5 h-5"></i></button>
-                <button onclick="newChat()" class="p-2.5 bg-brand-500 text-white rounded-xl shadow-lg shadow-brand-500/20 hover:scale-105 active:scale-95 transition-all"><i data-lucide="plus" class="w-5 h-5"></i></button>
-            </div>
+            <div class="w-10"></div>
         </header>
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-12 space-y-12 pb-44 no-scrollbar">
-            <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center py-20">
-                <div class="w-28 h-28 bg-brand-500 rounded-[35px] flex items-center justify-center shadow-2xl mb-12 rotate-6 hover:rotate-0 transition-transform duration-500">
-                    <img src="blixa.png" class="w-16 h-16" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-12 space-y-8 no-scrollbar pb-40">
+            <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center">
+                <div class="w-24 h-24 bg-brand-500 rounded-[30px] flex items-center justify-center shadow-2xl mb-8 rotate-6">
+                    <img src="blixa.png" class="w-14 h-14" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
                 </div>
-                <h1 class="text-5xl md:text-8xl font-black mb-6 full-gradient tracking-tighter">Autonomous AI.</h1>
-                <p class="text-zinc-500 dark:text-zinc-400 text-lg max-w-2xl font-medium leading-relaxed">System Version 2026.4. Stability confirmed.</p>
+                <h1 class="text-5xl md:text-7xl font-black mb-6 full-gradient tracking-tighter">Autonomous AI.</h1>
+                <p class="text-zinc-500 max-w-md font-medium">System ready for professional commands. Self-healing logic active.</p>
             </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 p-4 md:px-10 pb-8 md:pb-10 bg-gradient-to-t from-white dark:from-surface-950 via-transparent pointer-events-none">
-            <div class="max-w-4xl mx-auto pointer-events-auto">
-                <div class="glass-card rounded-[32px] p-1.5 flex flex-col shadow-2xl border dark:border-white/5 transition-all focus-within:ring-2 ring-brand-500/20">
-                    <textarea id="user-input" rows="1" placeholder="Type command..." class="w-full bg-transparent px-5 py-3 outline-none resize-none text-zinc-800 dark:text-white max-h-48 text-base font-medium leading-normal" oninput="autoResize(this)"></textarea>
-                    <div class="flex items-center justify-between px-4 pb-2.5">
-                        <div class="flex gap-1.5">
-                            <button onclick="startVoiceMode()" class="p-2.5 text-zinc-400 hover:text-brand-500 hover:bg-brand-500/10 rounded-2xl transition-all"><i data-lucide="mic" class="w-5 h-5"></i></button>
-                            <label class="p-2.5 text-zinc-400 hover:text-indigo-500 hover:bg-indigo-500/10 rounded-2xl cursor-pointer">
-                                <i data-lucide="paperclip" class="w-5 h-5"></i><input type="file" class="hidden">
-                            </label>
+        <div class="absolute bottom-0 left-0 right-0 p-4 md:px-10 pb-10 bg-gradient-to-t from-white dark:from-surface-950 via-transparent">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass-card rounded-[32px] p-2 flex flex-col shadow-2xl border dark:border-white/5">
+                    <textarea id="user-input" rows="1" placeholder="Type command..." class="w-full bg-transparent px-5 py-3 outline-none resize-none text-zinc-800 dark:text-white max-h-48" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"></textarea>
+                    <div class="flex items-center justify-between px-4 pb-2">
+                        <div class="flex gap-2">
+                            <button class="p-2 text-zinc-400 hover:text-brand-500"><i data-lucide="mic"></i></button>
+                            <button class="p-2 text-zinc-400 hover:text-indigo-500"><i data-lucide="paperclip"></i></button>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div id="char-counter" class="hidden md:block text-[9px] font-black text-zinc-400 uppercase">0 / 4000</div>
-                            <button id="send-btn" onclick="handleSend()" class="p-3 bg-brand-500 hover:bg-brand-600 disabled:opacity-20 text-white rounded-2xl shadow-xl transition-all active:scale-90" disabled><i data-lucide="navigation" class="w-5 h-5"></i></button>
-                        </div>
+                        <button onclick="sendMessage()" class="p-3 bg-brand-500 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all">
+                            <i data-lucide="navigation"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="settings-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
-        <div class="bg-white dark:bg-surface-900 w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl flex flex-col md:flex-row">
-            <div class="w-full md:w-56 bg-zinc-50 dark:bg-zinc-950 p-8 border-r dark:border-white/5">
-                <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-6">Simulation Core</div>
-                <button class="w-full text-left p-3 rounded-2xl bg-brand-500 text-white text-xs font-black shadow-lg shadow-brand-500/30">API NEURAL</button>
-            </div>
-            <div class="flex-1 p-10 space-y-8">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-3xl font-black">Core Config</h2>
-                    <button onclick="closeModal('settings-modal')"><i data-lucide="x" class="w-6 h-6"></i></button>
-                </div>
-                <div class="space-y-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-zinc-500 uppercase ml-2">Neural Key</label>
-                        <input type="password" id="api-key-input" class="w-full p-4 rounded-2xl border dark:border-zinc-800 bg-transparent outline-none focus:ring-2 ring-brand-500/40">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-zinc-500 uppercase ml-2">Endpoint URL</label>
-                        <input type="text" id="api-url-input" class="w-full p-4 rounded-2xl border dark:border-zinc-800 bg-transparent outline-none focus:ring-2 ring-brand-500/40">
-                    </div>
-                </div>
-                <button onclick="saveSettings()" class="w-full py-5 bg-zinc-900 dark:bg-white text-white dark:text-black font-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all">Synchronize Neural Net</button>
-            </div>
-        </div>
-    </div>
+    <script>
+        // Initialization
+        window.onload = () => {
+            lucide.createIcons();
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }, 1500);
+        };
 
-    <script src="script.js"></script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const container = document.getElementById('chat-container');
+            const welcome = document.getElementById('welcome-view');
+
+            if (input.value.trim() === "") return;
+
+            if (welcome) welcome.remove();
+
+            // User Message
+            const userDiv = document.createElement('div');
+            userDiv.className = "flex justify-end mb-4";
+            userDiv.innerHTML = `<div class="bg-brand-500 text-white p-4 rounded-2xl max-w-[80%] font-medium">${input.value}</div>`;
+            container.appendChild(userDiv);
+
+            // System Logging
+            const term = document.getElementById('terminal-content');
+            const line = document.createElement('div');
+            line.className = "terminal-line info";
+            line.innerText = `> Processed: ${input.value.substring(0, 15)}...`;
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight;
+
+            input.value = "";
+            input.style.height = 'auto';
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
 </body>
 </html>
