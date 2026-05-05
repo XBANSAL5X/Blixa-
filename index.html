@@ -30,7 +30,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #27272a; }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s ease; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s ease; height: 100vh; height: -webkit-fill-available; display: flex; overflow: hidden; }
         
         .blixa-gradient-text { background: linear-gradient(135deg, #ff0000, #ffea00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
@@ -61,21 +61,14 @@
         }
         .voice-wave { animation: wave 2s infinite ease-in-out; }
 
-        /* Input Bar Fix for Browser Rendering */
-        #input-wrapper {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            padding-bottom: 2rem;
-            background: linear-gradient(to top, var(--bg-color) 40%, transparent);
-        }
+        /* Fixed Layout Fix */
+        #main-content { height: 100vh; height: -webkit-fill-available; display: flex; flex-direction: column; overflow: hidden; }
+        #input-wrapper { background: linear-gradient(to top, var(--bg-color) 40%, transparent); }
         .dark #input-wrapper { --bg-color: #09090b; }
         #input-wrapper { --bg-color: #f8fafc; }
     </style>
 </head>
-<body class="flex h-screen bg-surface-50 dark:bg-surface-950 overflow-hidden text-zinc-900 dark:text-white">
+<body class="bg-surface-50 dark:bg-surface-950 text-zinc-900 dark:text-white">
 
     <div id="voice-overlay" class="fixed inset-0 z-[300] hidden bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center text-white">
         <div class="relative flex items-center justify-center mb-20">
@@ -129,15 +122,11 @@
                 <i data-lucide="sparkles" class="w-5 h-5"></i> New Intelligence
             </button>
         </div>
-        
         <div id="chat-list" class="flex-1 overflow-y-auto px-4 space-y-2 no-scrollbar"></div>
-        
         <div class="p-4 border-t border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3 p-4 bg-zinc-100/50 dark:bg-zinc-900/50 rounded-2xl">
                 <img id="user-avatar-preview" src="https://ui-avatars.com/api/?name=User" class="w-11 h-11 rounded-full border-2 border-brand-500">
-                <div class="flex-1">
-                    <p class="text-xs font-black truncate uppercase text-zinc-900 dark:text-white">Operator 01</p>
-                </div>
+                <div class="flex-1 text-xs font-black truncate uppercase text-zinc-900 dark:text-white">Operator 01</div>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-4">
                 <button onclick="toggleDarkMode()" class="p-3 flex flex-col items-center gap-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-600 dark:text-zinc-400">
@@ -153,13 +142,13 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col relative overflow-hidden">
-        <header class="flex items-center justify-between p-4 md:px-8 glass-card border-b z-40">
+    <main id="main-content" class="flex-1 flex flex-col relative">
+        <header class="flex-none flex items-center justify-between p-4 md:px-8 glass-card border-b z-40">
             <div class="flex items-center gap-4">
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-600 dark:text-white"><i data-lucide="menu"></i></button>
                 <div class="flex items-center gap-2">
                     <img src="blixa.png" class="w-7 h-7 rounded-lg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
-                    <span class="text-lg font-black tracking-tight text-zinc-900 dark:text-white">BLIXA <span class="text-brand-500">CORE</span></span>
+                    <span class="text-lg font-black tracking-tight text-zinc-900 dark:text-white uppercase">BLIXA <span class="text-brand-500">CORE</span></span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -168,19 +157,19 @@
             </div>
         </header>
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-12 space-y-12 pb-44 no-scrollbar">
-            <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center py-20">
-                <div class="w-36 h-36 border-4 border-brand-500 bg-white rounded-full flex items-center justify-center shadow-2xl mb-12 rotate-6">
-                    <img src="blixa.png" class="w-24 h-24 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-12 space-y-12 no-scrollbar">
+            <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center">
+                <div class="w-32 h-32 md:w-36 md:h-36 border-4 border-brand-500 bg-white rounded-full flex items-center justify-center shadow-2xl mb-12">
+                    <img src="blixa.png" class="w-20 h-20 md:w-24 md:h-24 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
                 </div>
-                <h1 class="text-5xl md:text-8xl font-black mb-6 tracking-tighter">
+                <h1 class="text-5xl md:text-8xl font-black mb-6 tracking-tighter uppercase">
                     <span class="text-zinc-900 dark:text-white">BLIXA</span> <span class="text-brand-500">CORE</span>
                 </h1>
                 <p class="text-zinc-500 dark:text-zinc-400 text-lg max-w-2xl font-medium">System Version 2026.4. Self-healing logic active.</p>
             </div>
         </div>
 
-        <div id="input-wrapper" class="p-4 md:px-10">
+        <div id="input-wrapper" class="flex-none p-4 md:px-10 pb-8">
             <div class="max-w-4xl mx-auto">
                 <div class="glass-card rounded-[32px] p-1.5 flex flex-col shadow-2xl border dark:border-white/5 transition-all focus-within:ring-2 ring-brand-500/20">
                     <textarea id="user-input" rows="1" placeholder="Type command..." class="w-full bg-transparent px-5 py-3 outline-none resize-none text-zinc-800 dark:text-white max-h-48 text-base font-medium leading-normal" oninput="autoResize(this)"></textarea>
@@ -196,13 +185,11 @@
     </main>
 
     <div id="settings-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
-        <div class="bg-white dark:bg-surface-900 w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl flex flex-col md:flex-row">
-            <div class="flex-1 p-10 space-y-8 text-zinc-900 dark:text-white">
-                <div class="flex justify-between items-center"><h2 class="text-3xl font-black">Core Config</h2><button onclick="closeModal('settings-modal')" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div>
-                <input type="password" id="api-key-input" placeholder="Neural Key" class="w-full p-4 rounded-2xl border dark:border-zinc-800 bg-transparent outline-none text-zinc-900 dark:text-white">
-                <input type="text" id="api-url-input" placeholder="Endpoint URL" class="w-full p-4 rounded-2xl border dark:border-zinc-800 bg-transparent outline-none text-zinc-900 dark:text-white">
-                <button onclick="saveSettings()" class="w-full py-5 bg-brand-500 text-white font-black rounded-2xl">Synchronize</button>
-            </div>
+        <div class="bg-white dark:bg-surface-900 w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl p-10 space-y-8">
+            <div class="flex justify-between items-center"><h2 class="text-3xl font-black">Core Config</h2><button onclick="closeModal('settings-modal')" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+            <input type="password" id="api-key-input" placeholder="Neural Key" class="w-full p-4 rounded-2xl border dark:border-zinc-800 bg-transparent outline-none">
+            <input type="text" id="api-url-input" placeholder="Endpoint URL" class="w-full p-4 rounded-2xl border dark:border-zinc-800 bg-transparent outline-none">
+            <button onclick="saveSettings()" class="w-full py-5 bg-brand-500 text-white font-black rounded-2xl">Synchronize</button>
         </div>
     </div>
 
@@ -231,11 +218,7 @@
         };
 
         const recognition = 'webkitSpeechRecognition' in window ? new webkitSpeechRecognition() : null;
-        if(recognition) {
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-        }
+        if(recognition) { recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US'; }
 
         window.onload = () => {
             lucide.createIcons();
@@ -246,53 +229,29 @@
             setTimeout(() => { document.getElementById('loader').remove(); }, 1000);
         };
 
-        function startVoiceMode() {
-            if (!recognition) return alert("Speech recognition not supported.");
-            state.voiceMode = true;
-            elements.voiceOverlay.classList.remove('hidden');
-            elements.voiceStatus.innerText = "Listening...";
-            elements.voiceTranscript.innerText = "Listening for commands...";
-            recognition.start();
-        }
-
-        function stopVoiceMode() {
-            state.voiceMode = false;
-            elements.voiceOverlay.classList.add('hidden');
-            recognition.stop();
-            window.speechSynthesis.cancel();
-        }
+        function startVoiceMode() { if (!recognition) return; state.voiceMode = true; elements.voiceOverlay.classList.remove('hidden'); recognition.start(); }
+        function stopVoiceMode() { state.voiceMode = false; elements.voiceOverlay.classList.add('hidden'); recognition.stop(); window.speechSynthesis.cancel(); }
 
         if(recognition) {
             recognition.onresult = (event) => {
                 const text = event.results[0][0].transcript;
                 elements.voiceTranscript.innerText = text;
-                if (event.results[0].isFinal) {
-                    elements.voiceStatus.innerText = "Processing...";
-                    handleVoiceSend(text);
-                }
+                if (event.results[0].isFinal) handleVoiceSend(text);
             };
-            recognition.onend = () => { if(state.voiceMode && elements.voiceStatus.innerText === "Listening...") recognition.start(); };
         }
 
         async function handleVoiceSend(text) {
             elements.userInput.value = text;
             await handleSend();
             const chat = state.chats.find(c => c.id === state.currentChatId);
-            if (!chat || chat.messages.length === 0) return;
+            if (!chat) return;
             const lastMessage = chat.messages[chat.messages.length - 1].content;
-            elements.voiceStatus.innerText = "Speaking...";
             speakText(lastMessage);
         }
 
         function speakText(text) {
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => {
-                if(state.voiceMode) {
-                    elements.voiceStatus.innerText = "Listening...";
-                    elements.voiceTranscript.innerText = "Waiting for you...";
-                    recognition.start();
-                }
-            };
+            utterance.onend = () => { if(state.voiceMode) recognition.start(); };
             window.speechSynthesis.speak(utterance);
         }
 
@@ -332,13 +291,9 @@
 
         function renderChatList() {
             elements.chatList.innerHTML = state.chats.slice().reverse().map(chat => `
-                <div class="chat-item group relative flex items-center p-4 rounded-2xl cursor-pointer transition-all ${state.currentChatId === chat.id ? 'bg-brand-500 text-white' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'}">
-                    <div class="flex-1 truncate pr-6" onclick="loadChat(${chat.id})">
-                        <span class="text-[10px] font-black uppercase tracking-tighter">${chat.title}</span>
-                    </div>
-                    <button onclick="deleteChat(event, ${chat.id})" class="delete-btn absolute right-2 p-2 hover:bg-red-500/20 hover:text-red-500 rounded-xl transition-all">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
+                <div class="chat-item group relative flex items-center p-4 rounded-2xl cursor-pointer transition-all ${state.currentChatId === chat.id ? 'bg-brand-500 text-white' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'}" onclick="loadChat(${chat.id})">
+                    <span class="text-[10px] font-black uppercase tracking-tighter truncate pr-6">${chat.title}</span>
+                    <button onclick="deleteChat(event, ${chat.id})" class="delete-btn absolute right-2 p-2 hover:bg-red-500/20 hover:text-red-500 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
             `).join('');
             lucide.createIcons();
@@ -351,86 +306,14 @@
             elements.welcomeView.classList.add('hidden');
             chat.messages.forEach(msg => appendUI(msg.role, msg.content));
             renderChatList();
-            if (window.innerWidth < 1024) toggleSidebar();
         }
 
         function deleteChat(event, id) {
             event.stopPropagation();
-            if (confirm("Delete this session forever?")) {
-                state.chats = state.chats.filter(c => c.id !== id);
-                localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
-                if (state.currentChatId === id) newChat();
-                else renderChatList();
-            }
+            state.chats = state.chats.filter(c => c.id !== id);
+            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
+            if (state.currentChatId === id) newChat(); else renderChatList();
         }
 
         async function handleSend() {
-            const val = elements.userInput.value.trim();
-            if (!val || state.isTyping) return;
-            
-            if (!state.currentChatId) {
-                state.currentChatId = Date.now();
-                state.chats.push({ id: state.currentChatId, title: val.substring(0, 25), messages: [] });
-                elements.welcomeView.classList.add('hidden');
-            }
-            
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            chat.messages.push({ role: 'user', content: val });
-            
-            appendUI('user', val);
-            elements.userInput.value = '';
-            autoResize(elements.userInput);
-            
-            state.isTyping = true;
-            const aiId = appendUI('assistant', '...');
-            
-            const reply = await callAPI(chat.messages);
-            await typeWriter(aiId, reply);
-            
-            chat.messages.push({ role: 'assistant', content: reply });
-            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
-            state.isTyping = false;
-            renderChatList();
-        }
-
-        async function callAPI(messages) {
-            try {
-                const response = await fetch(`${state.apiBase}/chat/completions`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ "model": state.model, "messages": messages })
-                });
-                const data = await response.json();
-                return data.choices?.[0]?.message?.content || "Signal lost.";
-            } catch (e) { return "ERROR: Connection refused."; }
-        }
-
-        function appendUI(role, text) {
-            const id = 'm-' + Math.random().toString(36).substr(2, 9);
-            const isUser = role === 'user';
-            const html = `
-                <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} w-full">
-                    <div class="bubble ${isUser ? 'bubble-user' : 'bubble-ai'}">
-                        <div id="${id}" class="prose dark:prose-invert prose-sm">${isUser ? marked.parse(text) : text}</div>
-                    </div>
-                </div>`;
-            elements.chatContainer.insertAdjacentHTML('beforeend', html);
-            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-            return id;
-        }
-
-        async function typeWriter(id, text) {
-            const el = document.getElementById(id);
-            el.innerHTML = '';
-            const words = text.split(' ');
-            let current = '';
-            for(const word of words) {
-                current += word + ' ';
-                el.innerHTML = marked.parse(current);
-                elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-                await new Promise(r => setTimeout(r, 15));
-            }
-        }
-    </script>
-</body>
-</html>
+    
