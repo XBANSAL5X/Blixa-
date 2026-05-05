@@ -1,49 +1,26 @@
+/* Custom UI Fixes */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.dark ::-webkit-scrollbar-thumb { background: #27272a; }
 
-/* Layout Reset */
-* { box-sizing: border-box; }
-body, html { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s ease; }
 
-/* Sidebar Glass Effect */
-.glass-sidebar {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-}
-.dark .glass-sidebar {
-    background: rgba(9, 9, 11, 0.95);
-}
+.blixa-gradient-text { background: linear-gradient(135deg, #ff0000, #ffea00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.full-gradient { background: linear-gradient(to right, #0ea5e9, #a855f7, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
-/* Scrollbar Control */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Glassmorphism */
+.glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 0, 0, 0.05); }
+.dark .glass-card { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
 
 /* Chat Bubbles */
-.bubble {
-    max-width: 85%;
-    padding: 1rem 1.25rem;
-    border-radius: 20px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    position: relative;
-    word-wrap: break-word;
-}
-.bubble-user {
-    background: #ec4899;
-    color: white;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-}
-.bubble-ai {
-    background: white;
-    border: 1px solid #e2e8f0;
-    color: #1e293b;
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-}
-.dark .bubble-ai {
-    background: #18181b;
-    border-color: #27272a;
-    color: #f4f4f5;
-}
+.bubble { max-width: 85%; padding: 1.25rem; border-radius: 24px; position: relative; margin-bottom: 1rem; }
+.bubble-user { background: #ec4899; color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
+.bubble-ai { background: white; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; align-self: flex-start; }
+.dark .bubble-ai { background: #18181b; border-color: #27272a; color: #f4f4f5; }
 
-/* Utilities */
-textarea { overflow: hidden; }
+/* Voice & Loader */
+.voice-active-overlay { background: rgba(9, 9, 11, 0.98); backdrop-filter: blur(40px); }
+.pulse { position: absolute; border-radius: 50%; border: 2px solid #ec4899; animation: pulse-out 2s infinite; }
+@keyframes pulse-out { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
