@@ -188,7 +188,7 @@
                         <img src="blixa.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
                     </div>
                     <h1 class="text-5xl md:text-8xl font-black mb-4 tracking-tighter uppercase">BLIXA <span class="text-brand-500">CORE</span></h1>
-                    <p class="text-zinc-500 dark:text-zinc-400 text-base md:text-lg max-w-xl font-medium">BLIXA.CORE.VERSION.3.O.AI</p>
+                    <p class="text-zinc-500 dark:text-zinc-400 text-base md:text-lg max-w-xl font-medium">Neural Interface Stable. Real-time Conv Enabled.</p>
                 </div>
             </div>
 
@@ -255,7 +255,6 @@
             voiceTranscript: document.getElementById('voice-transcript')
         };
 
-        // Recognition Engine Setup
         const recognition = 'webkitSpeechRecognition' in window ? new webkitSpeechRecognition() : null;
         if(recognition) { 
             recognition.continuous = false; 
@@ -273,7 +272,6 @@
             setTimeout(() => { elements.loader.classList.add('opacity-0'); setTimeout(() => elements.loader.style.display = 'none', 500); }, 2000);
         };
 
-        // REAL-TIME VOICE LOGIC
         function startVoiceMode() { 
             if (!recognition) return; 
             state.voiceMode = true; 
@@ -308,7 +306,6 @@
             speakText(lastMessage);
         }
 
-        // Voice Output with Indian Accent
         function speakText(text, btnElement = null) {
             window.speechSynthesis.cancel();
             if (state.currentSpeech === text && !state.voiceMode) { 
@@ -317,189 +314,8 @@
                 return; 
             }
             
-            // Text Cleaning
             let cleanText = text
                 .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '') 
                 .replace(/[*_~#`]/g, '') 
-                .replace(/\[.*?\]/g, '')
-                .trim();
-            
-            // Filter out parentheses text to avoid double name calling (e.g. "Blixa (ब्लिक्सा)" -> "Blixa")
-            cleanText = cleanText.replace(/\(.*?\)/g, "").trim();
-
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'hi-IN'; // Indian Accent
-            utterance.rate = 1.0; 
-            utterance.pitch = 1.0;
-
-            state.isSpeaking = true;
-            if(state.voiceMode) recognition.stop();
-            if(btnElement) btnElement.classList.add('active');
-
-            utterance.onend = () => {
-                state.isSpeaking = false;
-                state.currentSpeech = null;
-                if(btnElement) btnElement.classList.remove('active');
-                if(state.voiceMode) { 
-                    elements.voiceTranscript.innerText = '"Listening..."';
-                    recognition.start(); 
-                }
-            };
-            
-            state.currentSpeech = text;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // UI Logic
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-            elements.sendBtn.disabled = !textarea.value.trim();
-        }
-
-        function toggleDarkMode() {
-            state.isDarkMode = !state.isDarkMode;
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('blixa_theme', state.isDarkMode ? 'dark' : 'light');
-            lucide.createIcons();
-        }
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function goHome() { location.reload(); }
-
-        function saveSettings() {
-            state.apiBase = document.getElementById('api-url-input').value;
-            state.apiKey = document.getElementById('api-key-input').value;
-            state.model = document.getElementById('model-input').value;
-            localStorage.setItem('blixa_url', state.apiBase);
-            localStorage.setItem('blixa_key', state.apiKey);
-            localStorage.setItem('blixa_model', state.model);
-            closeModal('settings-modal');
-        }
-
-        function newChat() {
-            state.currentChatId = null;
-            elements.chatContainer.innerHTML = '';
-            elements.chatContainer.appendChild(elements.welcomeView);
-            elements.welcomeView.classList.remove('hidden');
-            renderChatList();
-        }
-
-        function renderChatList() {
-            elements.chatList.innerHTML = state.chats.slice().reverse().map(chat => `
-                <div class="chat-item group relative flex items-center p-4 rounded-2xl cursor-pointer transition-all ${state.currentChatId === chat.id ? 'bg-brand-500 text-white' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}" onclick="loadChat(${chat.id})">
-                    <span class="text-[10px] font-black uppercase truncate pr-6">${chat.title}</span>
-                    <button onclick="deleteChat(event, ${chat.id})" class="absolute right-2 p-2 hover:text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function loadChat(id) {
-            state.currentChatId = id;
-            const chat = state.chats.find(c => c.id === id);
-            elements.chatContainer.innerHTML = '';
-            chat.messages.forEach(msg => { if(msg.role !== 'system') appendUI(msg.role, msg.content); });
-            renderChatList();
-            if (window.innerWidth < 1024) toggleSidebar();
-        }
-
-        function deleteChat(event, id) {
-            event.stopPropagation();
-            state.chats = state.chats.filter(c => c.id !== id);
-            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
-            if (state.currentChatId === id) newChat(); else renderChatList();
-        }
-
-        async function handleSend() {
-            const val = elements.userInput.value.trim();
-            if (!val || state.isTyping) return;
-            if (!state.currentChatId) {
-                state.currentChatId = Date.now();
-                state.chats.push({ id: state.currentChatId, title: val.substring(0, 25), messages: [{ role: 'system', content: state.identity }] });
-                elements.chatContainer.innerHTML = '';
-            }
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            chat.messages.push({ role: 'user', content: val });
-            appendUI('user', val);
-            elements.userInput.value = '';
-            autoResize(elements.userInput);
-            state.isTyping = true;
-            const aiId = appendUI('assistant', '...');
-            const reply = await callAPI(chat.messages);
-            await typeWriter(aiId, reply);
-            chat.messages.push({ role: 'assistant', content: reply });
-            
-            const msgEl = document.getElementById(aiId).closest('.assistant-msg-wrapper');
-            if(msgEl) {
-                const speakerArea = msgEl.querySelector('.speaker-area');
-                speakerArea.innerHTML = `<button onclick="speakText(\`${reply.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="speaker-btn p-1.5"><i data-lucide="volume-2" class="w-4 h-4"></i></button>`;
-                lucide.createIcons();
-            }
-            localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
-            state.isTyping = false;
-            renderChatList();
-        }
-
-        async function callAPI(messages) {
-            try {
-                const response = await fetch(`${state.apiBase}/chat/completions`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${state.apiKey}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ "model": state.model, "messages": messages })
-                });
-                const data = await response.json();
-                return data.choices?.[0]?.message?.content || "Signal lost.";
-            } catch (e) { return "ERROR: Connection refused."; }
-        }
-
-        function copyCode(btn, id) {
-            const code = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                btn.innerText = 'COPIED!';
-                setTimeout(() => btn.innerText = 'COPY', 2000);
-            });
-        }
-
-        function formatMarkdown(text) {
-            const renderer = new marked.Renderer();
-            renderer.code = (code) => {
-                const id = 'code-' + Math.random().toString(36).substr(2, 9);
-                return `<div class="code-container"><div class="code-header"><button class="copy-btn" onclick="copyCode(this, '${id}')">COPY</button></div><pre><code id="${id}">${code.text}</code></pre></div>`;
-            };
-            return marked.parse(text, { renderer, breaks: true });
-        }
-
-        function appendUI(role, text) {
-            const id = 'm-' + Math.random().toString(36).substr(2, 9);
-            const isUser = role === 'user';
-            let content = isUser ? marked.parse(text) : (text === '...' ? '<div class="flex gap-1.5 py-2"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>' : formatMarkdown(text));
-            
-            let html = isUser ? 
-                `<div class="flex items-start justify-end w-full mb-6 p-4"><div class="bubble bubble-user prose dark:prose-invert">${content}</div><div class="user-logo-circle ml-4">U</div></div>` :
-                `<div class="assistant-msg-wrapper flex flex-col mb-6 p-4"><div class="flex items-start w-full"><div class="blixa-logo-circle mr-4"><img src="blixa.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'"></div><div id="${id}" class="bubble bubble-ai prose dark:prose-invert">${content}</div></div><div class="speaker-area flex items-center ml-[60px] mt-2">${text !== '...' ? `<button onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="speaker-btn p-1.5"><i data-lucide="volume-2" class="w-4 h-4"></i></button>` : ''}</div></div>`;
-
-            elements.chatContainer.insertAdjacentHTML('beforeend', html);
-            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-            lucide.createIcons();
-            return id;
-        }
-
-        async function typeWriter(id, text) {
-            const el = document.getElementById(id);
-            if(!el) return;
-            el.innerHTML = '';
-            const words = text.split(' ');
-            let current = '';
-            for(const word of words) {
-                current += word + ' ';
-                el.innerHTML = formatMarkdown(current);
-                elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-                await new Promise(r => setTimeout(r, 12));
-            }
-        }
-    </script>
-</body>
-</html>
+                .replace(/\(.*?\)/g, "").trim();
+        
