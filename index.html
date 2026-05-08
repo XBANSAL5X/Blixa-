@@ -27,6 +27,7 @@
     </script>
 
     <style>
+        /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #27272a; }
@@ -34,9 +35,11 @@
         html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .dark body { background-color: #09090b; }
         
+        /* Glassmorphism Cards */
         .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0, 0, 0, 0.05); }
         .dark .glass-card { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
 
+        /* Identity Circles */
         .blixa-logo-circle {
             width: 44px; height: 44px;
             background: #ffffff !important;
@@ -57,6 +60,7 @@
             flex-shrink: 0; text-transform: uppercase;
         }
 
+        /* Message Bubbles */
         .bubble { 
             max-width: 88%; padding: 1.5rem; border-radius: 28px; 
             overflow-x: auto; word-wrap: break-word; line-height: 1.7; font-size: 0.95rem;
@@ -65,6 +69,7 @@
         .bubble-ai { background: white; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; color: #1e293b; }
         .dark .bubble-ai { background: #18181b; border-color: #27272a; color: #f4f4f5; }
 
+        /* Code Block Styling */
         .code-container { position: relative; margin: 1.25rem 0; border-radius: 18px; overflow: hidden; background: #000000 !important; border: 1px solid #333; }
         .code-header { display: flex; justify-content: flex-end; padding: 10px 16px; background: #0a0a0a; border-bottom: 1px solid #222; }
         .copy-btn { color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 5px 10px; border-radius: 8px; background: #1a1a1a; transition: all 0.2s; }
@@ -73,20 +78,30 @@
         .prose pre code { background: transparent !important; color: #e5e7eb !important; }
         .prose :not(pre) > code { background: rgba(236, 72, 153, 0.1); color: #ec4899; padding: 0.2rem 0.4rem; border-radius: 6px; font-weight: 600; font-size: 0.85em; }
 
+        /* Animations */
+        .typing-dot { width: 6px; height: 6px; background: #ec4899; border-radius: 50%; display: inline-block; animation: dot-jump 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot-jump { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
+
         .app-container { display: flex; height: 100dvh; width: 100%; overflow: hidden; }
         #main-content { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; overflow: hidden; }
         #chat-container { flex: 1; overflow-y: auto; padding-bottom: 140px; }
 
         #input-wrapper { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.25rem; background: linear-gradient(to top, var(--bg-color) 80%, transparent); z-index: 50; }
-        .dark #input-wrapper { --bg-color: #09090b; }
-        #input-wrapper { --bg-color: #f8fafc; }
 
+        /* Voice Mode UI Components */
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 0.2; } 100% { transform: scale(0.8); opacity: 0.5; } }
         .mic-glow { box-shadow: 0 0 30px 10px rgba(236, 72, 153, 0.4); animation: mic-shimmer 2s infinite ease-in-out; }
         @keyframes mic-shimmer { 0%, 100% { box-shadow: 0 0 20px 5px rgba(236, 72, 153, 0.4); } 50% { box-shadow: 0 0 50px 20px rgba(236, 72, 153, 0.6); } }
         .voice-ring { animation: pulse-ring 3s infinite ease-in-out; }
-
         @keyframes pan { 0% { transform: translateX(-150%); } 100% { transform: translateX(150%); } }
+
+        /* Speaker Icon Animation */
+        .speaker-btn { opacity: 0.4; transition: all 0.3s ease; }
+        .speaker-btn:hover { opacity: 1; transform: scale(1.1); color: #ec4899; }
+        .speaker-btn.active { opacity: 1; color: #ec4899; animation: bounce 0.5s infinite alternate; }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.2); } }
     </style>
 </head>
 <body class="bg-surface-50 dark:bg-surface-950 text-zinc-900 dark:text-white">
@@ -114,7 +129,7 @@
             <div class="text-center px-10">
                 <p id="voice-transcript" class="text-white text-2xl font-medium italic max-w-lg min-h-[4rem]">"Say something..."</p>
             </div>
-            <button onclick="stopVoiceMode()" class="absolute bottom-12 p-5 bg-white/10 hover:bg-red-500 rounded-full border border-white/20">
+            <button onclick="stopVoiceMode()" class="absolute bottom-12 p-5 bg-white/10 hover:bg-red-500 rounded-full border border-white/20 transition-all active:scale-90">
                 <i data-lucide="x" class="w-8 h-8 text-white"></i>
             </button>
         </div>
@@ -173,7 +188,7 @@
                         <img src="blixa.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'">
                     </div>
                     <h1 class="text-5xl md:text-8xl font-black mb-4 tracking-tighter uppercase">BLIXA <span class="text-brand-500">CORE</span></h1>
-                    <p class="text-zinc-500 dark:text-zinc-400 text-base md:text-lg max-w-xl font-medium">Blixa.Core.Version.3.O</p>
+                    <p class="text-zinc-500 dark:text-zinc-400 text-base md:text-lg max-w-xl font-medium">BLIXA.CORE.VERSION.3.O.AI</p>
                 </div>
             </div>
 
@@ -194,30 +209,27 @@
     <div id="settings-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
         <div class="bg-white dark:bg-[#1c1c1e] w-full max-w-md rounded-[40px] overflow-hidden p-10 space-y-6 text-zinc-900 dark:text-white shadow-2xl border dark:border-white/5">
             <h2 class="text-2xl font-black uppercase tracking-tight">Core Configuration</h2>
-            
             <div class="space-y-4">
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">API Key</label>
-                    <input type="password" id="api-key-input" placeholder="Enter Neural Key" class="w-full p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#2c2c2e] outline-none focus:ring-2 ring-brand-500/20 transition-all">
+                    <input type="password" id="api-key-input" class="w-full p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#2c2c2e] outline-none">
                 </div>
-                
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Endpoint URL</label>
-                    <input type="text" id="api-url-input" placeholder="https://api.example.com" class="w-full p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#2c2c2e] outline-none focus:ring-2 ring-brand-500/20 transition-all">
+                    <input type="text" id="api-url-input" class="w-full p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#2c2c2e] outline-none">
                 </div>
-
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">AI Model</label>
-                    <input type="text" id="model-input" placeholder="e.g. google/gemini-2.0-flash" class="w-full p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#2c2c2e] outline-none focus:ring-2 ring-brand-500/20 transition-all">
+                    <input type="text" id="model-input" class="w-full p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#2c2c2e] outline-none">
                 </div>
             </div>
-
-            <button onclick="saveSettings()" class="w-full py-4 bg-brand-500 hover:bg-brand-600 text-white font-black rounded-2xl uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-brand-500/20">Synchronize</button>
-            <button onclick="closeModal('settings-modal')" class="w-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs font-bold transition-colors">Close Interface</button>
+            <button onclick="saveSettings()" class="w-full py-4 bg-brand-500 text-white font-black rounded-2xl uppercase shadow-lg">Synchronize</button>
+            <button onclick="closeModal('settings-modal')" class="w-full text-zinc-400 text-xs font-bold">Close Interface</button>
         </div>
     </div>
 
     <script>
+        // Core Engine State
         let state = {
             apiBase: localStorage.getItem('blixa_url') || 'https://openrouter.ai/api/v1',
             apiKey: localStorage.getItem('blixa_key') || '',
@@ -227,8 +239,9 @@
             isDarkMode: localStorage.getItem('blixa_theme') === 'dark',
             isTyping: false,
             voiceMode: false,
-            // Logic for Identity
-            identity: "Your name is Blixa, an autonomous AI entity. When asked for your name, always answer with Blixa."
+            isSpeaking: false,
+            currentSpeech: null,
+            identity: "Your name is Blixa, an autonomous AI entity created by Bansal. If someone asks for your name in Hindi, respond only with 'मेरा नाम ब्लिक्सा है'. If someone asks who created you in Hindi, respond only with 'मुझे बंसल ने बनाया है'. Do not provide names in both Hindi and English brackets; pick only one language based on the query."
         };
 
         const elements = {
@@ -242,8 +255,13 @@
             voiceTranscript: document.getElementById('voice-transcript')
         };
 
+        // Recognition Engine Setup
         const recognition = 'webkitSpeechRecognition' in window ? new webkitSpeechRecognition() : null;
-        if(recognition) { recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US'; }
+        if(recognition) { 
+            recognition.continuous = false; 
+            recognition.interimResults = true; 
+            recognition.lang = 'en-US'; 
+        }
 
         window.onload = () => {
             lucide.createIcons();
@@ -255,8 +273,22 @@
             setTimeout(() => { elements.loader.classList.add('opacity-0'); setTimeout(() => elements.loader.style.display = 'none', 500); }, 2000);
         };
 
-        function startVoiceMode() { if (!recognition) return; state.voiceMode = true; elements.voiceOverlay.classList.remove('hidden'); elements.voiceTranscript.innerText = '"Say something..."'; recognition.start(); }
-        function stopVoiceMode() { state.voiceMode = false; elements.voiceOverlay.classList.add('hidden'); recognition.stop(); window.speechSynthesis.cancel(); }
+        // REAL-TIME VOICE LOGIC
+        function startVoiceMode() { 
+            if (!recognition) return; 
+            state.voiceMode = true; 
+            elements.voiceOverlay.classList.remove('hidden'); 
+            elements.voiceTranscript.innerText = '"Listening..."'; 
+            recognition.start(); 
+        }
+
+        function stopVoiceMode() { 
+            state.voiceMode = false; 
+            elements.voiceOverlay.classList.add('hidden'); 
+            recognition.stop(); 
+            window.speechSynthesis.cancel(); 
+            state.isSpeaking = false;
+        }
 
         if(recognition) {
             recognition.onresult = (event) => {
@@ -264,6 +296,7 @@
                 elements.voiceTranscript.innerText = `"${text}"`;
                 if (event.results[0].isFinal) handleVoiceSend(text);
             };
+            recognition.onend = () => { if(state.voiceMode && !state.isSpeaking) recognition.start(); };
         }
 
         async function handleVoiceSend(text) {
@@ -275,14 +308,49 @@
             speakText(lastMessage);
         }
 
-        function speakText(text) {
-            const cleanText = text.replace(/[*_~`]/g, '').trim();
+        // Voice Output with Indian Accent
+        function speakText(text, btnElement = null) {
+            window.speechSynthesis.cancel();
+            if (state.currentSpeech === text && !state.voiceMode) { 
+                state.currentSpeech = null; 
+                if(btnElement) btnElement.classList.remove('active'); 
+                return; 
+            }
+            
+            // Text Cleaning
+            let cleanText = text
+                .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '') 
+                .replace(/[*_~#`]/g, '') 
+                .replace(/\[.*?\]/g, '')
+                .trim();
+            
+            // Filter out parentheses text to avoid double name calling (e.g. "Blixa (ब्लिक्सा)" -> "Blixa")
+            cleanText = cleanText.replace(/\(.*?\)/g, "").trim();
+
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'hi-IN';
-            utterance.onend = () => { if(state.voiceMode) { elements.voiceTranscript.innerText = '"Say something..."'; recognition.start(); } };
+            utterance.lang = 'hi-IN'; // Indian Accent
+            utterance.rate = 1.0; 
+            utterance.pitch = 1.0;
+
+            state.isSpeaking = true;
+            if(state.voiceMode) recognition.stop();
+            if(btnElement) btnElement.classList.add('active');
+
+            utterance.onend = () => {
+                state.isSpeaking = false;
+                state.currentSpeech = null;
+                if(btnElement) btnElement.classList.remove('active');
+                if(state.voiceMode) { 
+                    elements.voiceTranscript.innerText = '"Listening..."';
+                    recognition.start(); 
+                }
+            };
+            
+            state.currentSpeech = text;
             window.speechSynthesis.speak(utterance);
         }
 
+        // UI Logic
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
@@ -321,7 +389,7 @@
 
         function renderChatList() {
             elements.chatList.innerHTML = state.chats.slice().reverse().map(chat => `
-                <div class="chat-item group relative flex items-center p-4 rounded-2xl cursor-pointer transition-all ${state.currentChatId === chat.id ? 'bg-brand-500 text-white shadow-lg' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'}" onclick="loadChat(${chat.id})">
+                <div class="chat-item group relative flex items-center p-4 rounded-2xl cursor-pointer transition-all ${state.currentChatId === chat.id ? 'bg-brand-500 text-white' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}" onclick="loadChat(${chat.id})">
                     <span class="text-[10px] font-black uppercase truncate pr-6">${chat.title}</span>
                     <button onclick="deleteChat(event, ${chat.id})" class="absolute right-2 p-2 hover:text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                 </div>
@@ -333,9 +401,7 @@
             state.currentChatId = id;
             const chat = state.chats.find(c => c.id === id);
             elements.chatContainer.innerHTML = '';
-            chat.messages.forEach(msg => {
-                if(msg.role !== 'system') appendUI(msg.role, msg.content);
-            });
+            chat.messages.forEach(msg => { if(msg.role !== 'system') appendUI(msg.role, msg.content); });
             renderChatList();
             if (window.innerWidth < 1024) toggleSidebar();
         }
@@ -365,6 +431,13 @@
             const reply = await callAPI(chat.messages);
             await typeWriter(aiId, reply);
             chat.messages.push({ role: 'assistant', content: reply });
+            
+            const msgEl = document.getElementById(aiId).closest('.assistant-msg-wrapper');
+            if(msgEl) {
+                const speakerArea = msgEl.querySelector('.speaker-area');
+                speakerArea.innerHTML = `<button onclick="speakText(\`${reply.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="speaker-btn p-1.5"><i data-lucide="volume-2" class="w-4 h-4"></i></button>`;
+                lucide.createIcons();
+            }
             localStorage.setItem('blixa_chats', JSON.stringify(state.chats));
             state.isTyping = false;
             renderChatList();
@@ -392,13 +465,9 @@
 
         function formatMarkdown(text) {
             const renderer = new marked.Renderer();
-            renderer.code = (code, lang) => {
+            renderer.code = (code) => {
                 const id = 'code-' + Math.random().toString(36).substr(2, 9);
-                const codeStr = typeof code === 'object' ? code.text : code;
-                return `<div class="code-container">
-                    <div class="code-header"><button class="copy-btn" onclick="copyCode(this, '${id}')">COPY</button></div>
-                    <pre><code id="${id}">${codeStr}</code></pre>
-                </div>`;
+                return `<div class="code-container"><div class="code-header"><button class="copy-btn" onclick="copyCode(this, '${id}')">COPY</button></div><pre><code id="${id}">${code.text}</code></pre></div>`;
             };
             return marked.parse(text, { renderer, breaks: true });
         }
@@ -406,23 +475,15 @@
         function appendUI(role, text) {
             const id = 'm-' + Math.random().toString(36).substr(2, 9);
             const isUser = role === 'user';
-            const content = isUser ? marked.parse(text) : formatMarkdown(text);
+            let content = isUser ? marked.parse(text) : (text === '...' ? '<div class="flex gap-1.5 py-2"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>' : formatMarkdown(text));
             
-            let html = '';
-            if(isUser) {
-                html = `<div class="flex items-start justify-end w-full mb-6 p-4">
-                    <div class="bubble bubble-user prose dark:prose-invert">${content}</div>
-                    <div class="user-logo-circle ml-4">U</div>
-                </div>`;
-            } else {
-                html = `<div class="flex items-start w-full mb-6 p-4">
-                    <div class="blixa-logo-circle !border-2 !w-11 !h-11 mr-4"><img src="blixa.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'"></div>
-                    <div id="${id}" class="bubble bubble-ai prose dark:prose-invert">${content}</div>
-                </div>`;
-            }
+            let html = isUser ? 
+                `<div class="flex items-start justify-end w-full mb-6 p-4"><div class="bubble bubble-user prose dark:prose-invert">${content}</div><div class="user-logo-circle ml-4">U</div></div>` :
+                `<div class="assistant-msg-wrapper flex flex-col mb-6 p-4"><div class="flex items-start w-full"><div class="blixa-logo-circle mr-4"><img src="blixa.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712139.png'"></div><div id="${id}" class="bubble bubble-ai prose dark:prose-invert">${content}</div></div><div class="speaker-area flex items-center ml-[60px] mt-2">${text !== '...' ? `<button onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="speaker-btn p-1.5"><i data-lucide="volume-2" class="w-4 h-4"></i></button>` : ''}</div></div>`;
 
             elements.chatContainer.insertAdjacentHTML('beforeend', html);
             elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+            lucide.createIcons();
             return id;
         }
 
