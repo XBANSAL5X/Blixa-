@@ -128,7 +128,7 @@
                 </div>
             </div>
             <div class="text-center px-10">
-                <p id="voice-transcript" class="text-white text-2xl font-medium italic max-w-lg min-h-[4rem]">"Say something..."</p>
+                <p id="voice-transcript" class="text-white text-2xl font-medium italic max-w-lg min-h-[4rem]">"Ask something..."</p>
             </div>
             <button onclick="stopVoiceMode()" class="absolute bottom-12 p-5 bg-white/10 hover:bg-red-500 rounded-full border border-white/20 transition-all active:scale-90">
                 <i data-lucide="x" class="w-8 h-8 text-white"></i>
@@ -342,7 +342,7 @@
                 state.currentSpeech = null;
                 if(btnElement) btnElement.classList.remove('active');
                 if(state.voiceMode) { 
-                    elements.voiceTranscript.innerText = '"Listening..."';
+                    elements.voiceTranscript.innerText = '"Ask Something..."';
                     recognition.start(); 
                 }
             };
